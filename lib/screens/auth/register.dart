@@ -136,12 +136,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -163,7 +162,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         backgroundColor: kBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: kPrimaryColor),
+          icon: const Icon(Icons.arrow_back_ios, color: kPrimaryColor),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -264,7 +263,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 16.0),
 
                   DropdownButtonFormField<String>(
-                    value: _selectedGender,
+                    initialValue: _selectedGender,
                     decoration: _buildInputDecoration(
                       hintText: 'Género',
                       prefixIcon: Icons.person_outline,

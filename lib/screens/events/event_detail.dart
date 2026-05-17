@@ -1,8 +1,7 @@
-import 'dart:convert';
-import 'dart:developer' as developer;
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:hackathon_frontend/models/event_model.dart';
+import 'package:hackathon_frontend/services/event_service.dart';
 import 'package:hackathon_frontend/utils/colors.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -54,9 +53,9 @@ class EventDetailsScreen extends StatelessWidget {
                     height: 220,
                     color: Colors.grey[200],
                     alignment: Alignment.center,
-                    child: Column(
+                    child: const Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Icon(Icons.image_not_supported_outlined, size: 40),
                         SizedBox(height: 8),
                         Text('Imagen no disponible'),
@@ -182,7 +181,7 @@ class EventDetailsScreen extends StatelessWidget {
                     );
                   }
                 },
-                style: TextButton.styleFrom(foregroundColor: Color(0xFF8d55d8)),
+                style: TextButton.styleFrom(foregroundColor: const Color(0xFF8d55d8)),
                 icon: const Icon(Icons.directions_car_outlined, size: 18),
                 label: const Text('Agendar viaje'),
               ),
@@ -366,10 +365,47 @@ class _CapacityBar extends StatelessWidget {
   }
 }
 
-class _ActionSection extends StatelessWidget {
+class _ActionSection extends StatefulWidget {
   const _ActionSection({required this.event});
 
   final Event event;
+
+  @override
+  State<_ActionSection> createState() => _ActionSectionState();
+}
+
+class _ActionSectionState extends State<_ActionSection> {
+  final EventService _eventService = EventService();
+  bool _joining = false;
+
+  Future<void> _join() async {
+    setState(() => _joining = true);
+    try {
+      await _eventService.joinEvent(widget.event.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('¡Te has unido al plan!'),
+          backgroundColor: kPrimaryColor,
+        ),
+      );
+    } on EventException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al unirse al plan'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _joining = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -389,14 +425,7 @@ class _ActionSection extends StatelessWidget {
         child: SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Funcionalidad en desarrollo'),
-                  backgroundColor: kPrimaryColor,
-                ),
-              );
-            },
+            onPressed: _joining ? null : _join,
             style: ElevatedButton.styleFrom(
               backgroundColor: kPrimaryColor,
               foregroundColor: Colors.white,
@@ -405,10 +434,19 @@ class _ActionSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'Unirme al plan',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            child: _joining
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Text(
+                    'Unirme al plan',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
           ),
         ),
       ),

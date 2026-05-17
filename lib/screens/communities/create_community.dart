@@ -204,7 +204,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
         backgroundColor: Colors.white,
         elevation: 1,
         leading: IconButton(
-          icon: Icon(Icons.close, color: kPrimaryColor),
+          icon: const Icon(Icons.close, color: kPrimaryColor),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
@@ -236,7 +236,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                         : Colors.grey[200],
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: kPrimaryColor.withOpacity(0.7),
+                      color: kPrimaryColor.withValues(alpha:0.7),
                       width: 1.5,
                     ),
                   ),
@@ -248,10 +248,10 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                             fit: BoxFit.cover,
                           ),
                         )
-                      : Center(
+                      : const Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Icon(
                                 Icons.add_a_photo_outlined,
                                 color: kPrimaryColor,
@@ -295,7 +295,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: kPrimaryColor,
                         side: BorderSide(
-                          color: kPrimaryColor.withOpacity(0.5),
+                          color: kPrimaryColor.withValues(alpha:0.5),
                         ),
                       ),
                       child: const Text('Reintentar'),
@@ -304,7 +304,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                 )
               else
                 DropdownButtonFormField<int>(
-                  value: _selectedCategoryId,
+                  initialValue: _selectedCategoryId,
                   decoration: _buildInputDecoration(
                     hintText: 'Categoría',
                     icon: Icons.category_outlined,
@@ -357,7 +357,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                     _isPrivate = value;
                   });
                 },
-                activeColor: kPrimaryColor,
+                activeThumbColor: kPrimaryColor,
                 secondary: Icon(
                   _isPrivate ? Icons.lock_outline : Icons.public,
                   color: kPrimaryColor,
@@ -413,7 +413,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      prefixIcon: Icon(icon, color: kPrimaryColor.withOpacity(0.7)),
+      prefixIcon: Icon(icon, color: kPrimaryColor.withValues(alpha:0.7)),
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(

@@ -57,13 +57,13 @@ class _MyAppState extends State<MyApp> {
       title: 'Plancito',
 
       theme: ThemeData(
-        primaryColor: Color(0xFF4BBAC3),
+        primaryColor: kPrimaryColor,
 
-        scaffoldBackgroundColor: Color(0xFFF5F4EF),
+        scaffoldBackgroundColor: kBackgroundColor,
 
         visualDensity: VisualDensity.adaptivePlatformDensity,
 
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF4BBAC3)),
+        colorScheme: ColorScheme.fromSeed(seedColor: kPrimaryColor),
       ),
 
       home: FutureBuilder<bool>(

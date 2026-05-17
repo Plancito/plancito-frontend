@@ -63,7 +63,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
 
       // Process organized events
       for (final event in allOrganized) {
-        if (event.timeEnd.isAfter(now)) {
+        if (event.timeEnd?.isAfter(now) ?? false) {
           newOrganized.add(event);
         } else {
           newPast.add(event);
@@ -116,7 +116,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           }
         }
 
-        if (event.timeEnd.isAfter(now)) {
+        if (event.timeEnd?.isAfter(now) ?? false) {
           newAttending.add(event);
         } else {
           // Only add to past if it wasn't already added from the organized list
@@ -153,10 +153,11 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
         _errorMessage = 'Error inesperado al cargar los eventos.';
       });
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -217,8 +218,8 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
             }
           },
           backgroundColor: kPrimaryColor,
-          child: const Icon(Icons.add, color: Colors.white),
           tooltip: 'Crear Nuevo Plan',
+          child: const Icon(Icons.add, color: Colors.white),
         ),
       ),
     );
@@ -307,7 +308,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
       'name': event.name,
       'description': event.description,
       'timeBegin': event.timeBegin.toIso8601String(),
-      'timeEnd': event.timeEnd.toIso8601String(),
+      'timeEnd': event.timeEnd?.toIso8601String(),
       'placeId': event.placeId,
       'place': place != null ? {
         'id': place.id,
@@ -371,9 +372,9 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                     height: 150,
                     color: Colors.grey[200],
                     alignment: Alignment.center,
-                    child: Column(
+                    child: const Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Icon(Icons.image_not_supported_outlined, size: 40, color: Colors.grey),
                         SizedBox(height: 8),
                         Text('Imagen no disponible', style: TextStyle(color: Colors.grey)),

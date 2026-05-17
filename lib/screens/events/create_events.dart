@@ -86,6 +86,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       lastDate: DateTime(2030),
     );
     if (pickedDate != null) {
+      if (!mounted) return;
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(DateTime.now()),
@@ -229,10 +230,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _submitting = false;
-      });
+      if (mounted) {
+        setState(() {
+          _submitting = false;
+        });
+      }
     }
   }
 
@@ -244,7 +246,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         backgroundColor: Colors.white,
         elevation: 1,
         leading: IconButton(
-          icon: Icon(Icons.close, color: kPrimaryColor),
+          icon: const Icon(Icons.close, color: kPrimaryColor),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
@@ -272,11 +274,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: _imageSelected
-                        ? kPrimaryColor.withOpacity(0.1)
+                        ? kPrimaryColor.withValues(alpha:0.1)
                         : Colors.grey[200],
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: kPrimaryColor.withOpacity(0.3),
+                      color: kPrimaryColor.withValues(alpha:0.3),
                       width: 1.5,
                     ),
                   ),
@@ -312,7 +314,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                             : Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.camera_alt_outlined,
                                     color: kPrimaryColor,
                                     size: 42,
@@ -360,7 +362,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        value: _selectedCategoryId,
+                        initialValue: _selectedCategoryId,
                         isExpanded: true,
                         decoration: _buildInputDecoration(
                           hintText: 'Categoría',
@@ -409,7 +411,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<int>(
-                      value: _selectedCommunityId,
+                      initialValue: _selectedCommunityId,
                       isExpanded: true,
                       decoration: _buildInputDecoration(
                         hintText: 'Comunidad',
@@ -462,7 +464,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        value: _selectedPlaceId,
+                        initialValue: _selectedPlaceId,
                         isExpanded: true,
                         decoration: _buildInputDecoration(
                           hintText: 'Lugar del evento',
@@ -562,7 +564,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     _isPrivate = value;
                   });
                 },
-                activeColor: kPrimaryColor,
+                activeThumbColor: kPrimaryColor,
               ),
               const SizedBox(height: 32),
               SizedBox(
@@ -655,10 +657,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         SnackBar(content: Text('No se pudo procesar la imagen: $error')),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _processingImage = false;
-      });
+      if (mounted) {
+        setState(() {
+          _processingImage = false;
+        });
+      }
     }
   }
 
@@ -677,7 +680,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      prefixIcon: Icon(icon, color: kPrimaryColor.withOpacity(0.7)),
+      prefixIcon: Icon(icon, color: kPrimaryColor.withValues(alpha:0.7)),
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(

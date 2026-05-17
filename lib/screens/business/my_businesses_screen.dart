@@ -145,13 +145,12 @@ class _MyBusinessesListScreenState extends State<MyBusinessesListScreen> {
         _errorMessage = 'Error inesperado al cargar tus negocios.';
       });
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isLoadingMore = false;
+        });
       }
-      setState(() {
-        _isLoading = false;
-        _isLoadingMore = false;
-      });
     }
   }
 
@@ -202,8 +201,8 @@ class _MyBusinessesListScreenState extends State<MyBusinessesListScreen> {
                 }
               },
         backgroundColor: kPrimaryColor,
-        child: const Icon(Icons.add_business_outlined, color: Colors.white),
         tooltip: 'Añadir Negocio',
+        child: const Icon(Icons.add_business_outlined, color: Colors.white),
       ),
     );
   }
@@ -288,7 +287,7 @@ class _MyBusinessesListScreenState extends State<MyBusinessesListScreen> {
                     place.image != null && place.image!.isNotEmpty
                         ? NetworkImage(place.image!)
                         : null,
-                backgroundColor: kPrimaryColor.withOpacity(0.1),
+                backgroundColor: kPrimaryColor.withValues(alpha:0.1),
                 child: place.image != null && place.image!.isNotEmpty
                     ? null
                     : const Icon(
@@ -347,7 +346,7 @@ class _MyBusinessesListScreenState extends State<MyBusinessesListScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: kPrimaryColor.withOpacity(0.1),
+        color: kPrimaryColor.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

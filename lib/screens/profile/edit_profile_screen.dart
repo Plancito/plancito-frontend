@@ -160,10 +160,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _errorMessage = 'Error inesperado al actualizar el perfil.';
       });
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isSaving = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -310,7 +311,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }) {
     return InputDecoration(
       labelText: labelText,
-      prefixIcon: Icon(icon, color: kPrimaryColor.withOpacity(0.7)),
+      prefixIcon: Icon(icon, color: kPrimaryColor.withValues(alpha:0.7)),
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(

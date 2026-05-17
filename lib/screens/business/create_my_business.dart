@@ -141,12 +141,11 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
         ),
       );
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
       }
-      setState(() {
-        _isSubmitting = false;
-      });
     }
   }
 
@@ -186,7 +185,7 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedType,
+                initialValue: _selectedType,
                 decoration: _buildInputDecoration(
                   hintText: 'Tipo de negocio',
                   icon: Icons.category_outlined,
@@ -348,7 +347,7 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      prefixIcon: Icon(icon, color: kPrimaryColor.withOpacity(0.7)),
+      prefixIcon: Icon(icon, color: kPrimaryColor.withValues(alpha:0.7)),
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(

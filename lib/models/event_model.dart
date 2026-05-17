@@ -8,7 +8,7 @@ class Event {
   final String name;
   final String description;
   final DateTime timeBegin;
-  final DateTime timeEnd;
+  final DateTime? timeEnd;
   final int? placeId;
   final int? organizerId;
   final int? communityId;
@@ -28,7 +28,7 @@ class Event {
     required this.name,
     required this.description,
     required this.timeBegin,
-    required this.timeEnd,
+    this.timeEnd,
     required this.placeId,
     required this.organizerId,
     this.communityId,
@@ -55,7 +55,7 @@ class Event {
       name: json['name'] as String,
       description: json['description'] as String,
       timeBegin: DateTime.parse(json['timeBegin'] as String),
-      timeEnd: json['timeEnd'] != null ? DateTime.parse(json['timeEnd'] as String) : DateTime.now(),
+      timeEnd: json['timeEnd'] != null ? DateTime.parse(json['timeEnd'] as String) : null,
       placeId: json['placeId'] as int? ?? 0,
       organizerId: json['organizerId'] as int?,
       communityId: json['communityId'] as int?,

@@ -15,14 +15,14 @@ class CustomizeEventButton extends StatelessWidget {
         width: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [kPrimaryColor, kPrimaryColor.withOpacity(0.85)],
+            colors: [kPrimaryColor, kPrimaryColor.withValues(alpha:0.85)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: kPrimaryColor.withOpacity(0.3),
+              color: kPrimaryColor.withValues(alpha:0.3),
               blurRadius: 18,
               offset: const Offset(0, 10),
             ),
@@ -47,10 +47,10 @@ class CustomizeEventButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
               ),
             ),
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.max,
-              children: const [
+              children: [
                 Icon(Icons.auto_awesome, color: Colors.white),
                 SizedBox(width: 12),
                 Text(

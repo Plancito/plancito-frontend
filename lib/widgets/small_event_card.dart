@@ -118,7 +118,7 @@ class _EventImageState extends State<_EventImage>
       width: 150,
       fit: BoxFit.cover,
       gaplessPlayback: true,
-      errorBuilder: (_, __, ___) => _defaultImage(),
+      errorBuilder: (context, error, stackTrace) => _defaultImage(),
     );
   }
 

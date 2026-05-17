@@ -22,7 +22,7 @@ class EventCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha:0.08),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -119,8 +119,8 @@ class _EventImage extends StatelessWidget {
               imageUrl: imageUrl,
               width: double.infinity,
               fit: BoxFit.cover,
-              placeholder: (_, __) => _placeholder(),
-              errorWidget: (_, __, ___) => _placeholder(),
+              placeholder: (context, url) => _placeholder(),
+              errorWidget: (context, url, error) => _placeholder(),
             )
           : _placeholder(),
     );

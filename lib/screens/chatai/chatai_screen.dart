@@ -127,13 +127,12 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
         ),
       );
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _scrollToBottom();
       }
-      setState(() {
-        _isLoading = false;
-      });
-      _scrollToBottom();
     }
   }
 
@@ -149,6 +148,7 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
     if (kIsWeb) {
       final hasPermission = await _audioRecorder.hasPermission();
       if (!hasPermission) {
+        if (!mounted) return false;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Se requieren permisos de micrófono para grabar.'),
@@ -240,6 +240,7 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
           });
         }
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('No se pudo grabar audio: ${e.toString()}'),
@@ -402,13 +403,12 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
         ),
       );
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _scrollToBottom();
       }
-      setState(() {
-        _isLoading = false;
-      });
-      _scrollToBottom();
     }
   }
 
@@ -531,7 +531,7 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha:0.1),
               spreadRadius: 1,
               blurRadius: 3,
             ),
@@ -575,7 +575,7 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             spreadRadius: 1,
             blurRadius: 5,
           ),

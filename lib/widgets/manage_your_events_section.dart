@@ -146,7 +146,7 @@ class _PlaceImage extends StatelessWidget {
           height: 120,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha:0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
@@ -165,12 +165,12 @@ class _PlaceImage extends StatelessWidget {
       height: 120,
       width: double.infinity,
       fit: BoxFit.cover,
-      placeholder: (_, __) => Container(
+      placeholder: (context, url) => Container(
         height: 120,
         width: double.infinity,
         color: Colors.grey[200],
       ),
-      errorWidget: (_, __, ___) => placeholder(),
+      errorWidget: (context, url, error) => placeholder(),
     );
   }
 }

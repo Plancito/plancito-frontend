@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hackathon_frontend/models/ai_audio_reply.dart';
-import 'package:hackathon_frontend/screens/auth/login.dart';
+import 'package:hackathon_frontend/utils/storage_keys.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,7 +34,7 @@ class AIChatService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw AIChatException('Token de autenticación no disponible');
     }
@@ -131,7 +131,7 @@ class AIChatService {
     );
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw AIChatException('Token de autenticación no disponible');
     }
@@ -232,7 +232,7 @@ class AIChatService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw AIChatException('Token de autenticación no disponible');
     }

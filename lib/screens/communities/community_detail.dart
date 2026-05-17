@@ -151,12 +151,11 @@ class _CommunityRequestsScreenState extends State<CommunityRequestsScreen> {
         ),
       );
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _processingRequests.remove(request.id);
+        });
       }
-      setState(() {
-        _processingRequests.remove(request.id);
-      });
     }
   }
 
@@ -229,7 +228,7 @@ class _CommunityRequestsScreenState extends State<CommunityRequestsScreen> {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _requests.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final request = _requests[index];
         final normalizedName = request.userName?.trim();
@@ -251,7 +250,7 @@ class _CommunityRequestsScreenState extends State<CommunityRequestsScreen> {
           elevation: 1,
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: kPrimaryColor.withOpacity(0.2),
+              backgroundColor: kPrimaryColor.withValues(alpha:0.2),
               child: Text(
                 name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?',
                 style: const TextStyle(color: kPrimaryColor),
@@ -286,13 +285,13 @@ class _CommunityRequestsScreenState extends State<CommunityRequestsScreen> {
                                       approve: true,
                                     ),
                             icon: _processingRequests.contains(request.id)
-                                ? SizedBox(
+                                ? const SizedBox(
                                     width: 16,
                                     height: 16,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor:
-                                          const AlwaysStoppedAnimation<Color?>(
+                                          AlwaysStoppedAnimation<Color?>(
                                         Colors.white,
                                       ),
                                     ),
@@ -316,13 +315,13 @@ class _CommunityRequestsScreenState extends State<CommunityRequestsScreen> {
                                       approve: false,
                                     ),
                             icon: _processingRequests.contains(request.id)
-                                ? SizedBox(
+                                ? const SizedBox(
                                     width: 16,
                                     height: 16,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor:
-                                          const AlwaysStoppedAnimation<Color?>(
+                                          AlwaysStoppedAnimation<Color?>(
                                         Colors.white,
                                       ),
                                     ),
@@ -488,12 +487,11 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
         const SnackBar(content: Text('No fue posible enviar la solicitud.')),
       );
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _isJoinRequesting = false;
+        });
       }
-      setState(() {
-        _isJoinRequesting = false;
-      });
     }
   }
 
@@ -764,7 +762,7 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
                       onTap: _openRequests,
                       child: Chip(
                         label: Text(_pluralize('solicitud', 'solicitudes', community.requestsCount)),
-                        backgroundColor: community.requestsCount > 0 ? Colors.orange.withOpacity(0.15) : Colors.grey.shade200,
+                        backgroundColor: community.requestsCount > 0 ? Colors.orange.withValues(alpha:0.15) : Colors.grey.shade200,
                       ),
                     ),
                   ],
@@ -793,12 +791,12 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
                       ? null
                       : () => _requestJoinCommunity(),
                   icon: _isJoinRequesting
-                      ? SizedBox(
+                      ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: const AlwaysStoppedAnimation<Color?>(
+                            valueColor: AlwaysStoppedAnimation<Color?>(
                               Colors.white,
                             ),
                           ),
@@ -884,7 +882,7 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
             children: [
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedStatus,
+                  initialValue: _selectedStatus,
                   decoration: const InputDecoration(
                     labelText: 'Estado',
                     border: OutlineInputBorder(),
@@ -902,7 +900,7 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
               const SizedBox(width: 12),
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedVisibility,
+                  initialValue: _selectedVisibility,
                   decoration: const InputDecoration(
                     labelText: 'Visibilidad',
                     border: OutlineInputBorder(),
@@ -924,7 +922,7 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
             contentPadding: EdgeInsets.zero,
             title: const Text('Solo próximos eventos'),
             value: _upcomingOnly,
-            activeColor: kPrimaryColor,
+            activeThumbColor: kPrimaryColor,
             onChanged: (value) {
               setState(() {
                 _upcomingOnly = value;
@@ -1058,7 +1056,7 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
               children: [
                 Chip(
                   label: Text(status),
-                  backgroundColor: kPrimaryColor.withOpacity(0.15),
+                  backgroundColor: kPrimaryColor.withValues(alpha:0.15),
                   labelStyle: const TextStyle(color: kPrimaryColor),
                 ),
                 Chip(
@@ -1110,10 +1108,10 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
 
         return ListTile(
           leading: CircleAvatar(
-            // backgroundColor: kPrimaryColor.withOpacity(0.2),
+            // backgroundColor: kPrimaryColor.withValues(alpha:0.2),
             backgroundImage: imageFromUser != null && imageFromUser.isNotEmpty ? NetworkImage(imageFromUser) : null,
             child: (imageFromUser == null || imageFromUser.isEmpty)
-                ? Icon(
+                ? const Icon(
                     Icons.person,
                     size: 24, // Adjusted size to fit ListTile's CircleAvatar
                     color: kPrimaryColor,

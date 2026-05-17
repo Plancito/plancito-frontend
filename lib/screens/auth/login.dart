@@ -1,19 +1,17 @@
+export 'package:hackathon_frontend/utils/colors.dart';
+export 'package:hackathon_frontend/utils/storage_keys.dart';
+
 import 'package:flutter/material.dart';
+import 'package:hackathon_frontend/utils/colors.dart';
+import 'package:hackathon_frontend/utils/storage_keys.dart';
 import 'register.dart';
 import 'forgot_password.dart';
 import '../home/home_screen.dart';
 import 'package:hackathon_frontend/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Definimos tus colores principales para usarlos fácilmente
-const Color kPrimaryColor = Color(0xFF4BBAC3);
-const Color kBackgroundColor = Color(0xFFF5F4EF);
-
-class LoginStorageKeys {
-  static const userId = 'userId';
-  static const token = 'authToken';
-  static const userRole = 'userRole';
-}
+// Backward-compat alias so screens that still reference LoginStorageKeys compile.
+typedef LoginStorageKeys = StorageKeys;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,26 +21,20 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Clave para manejar el estado del formulario
   final _formKey = GlobalKey<FormState>();
 
-  // Controladores para los campos de texto
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
 
-  // Variable para manejar la visibilidad de la contraseña
   bool _isPasswordObscured = true;
-
-  late bool _isLoading;
-  late AuthService _authService;
+  bool _isLoading = false;
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
-    _isLoading = false;
-    _authService = AuthService();
   }
 
   @override
@@ -52,16 +44,13 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // Función para el botón de login
   Future<void> _login() async {
-    // Primero, valida el formulario
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    // Si es válido, obtén los datos
-    String email = _emailController.text;
-    String password = _passwordController.text;
+    final email = _emailController.text;
+    final password = _passwordController.text;
 
     setState(() {
       _isLoading = true;
@@ -74,9 +63,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(LoginStorageKeys.userId, authResponse.user.id);
-      await prefs.setString(LoginStorageKeys.token, authResponse.token);
-      await prefs.setString(LoginStorageKeys.userRole, authResponse.user.role);
+      await prefs.setInt(StorageKeys.userId, authResponse.user.id);
+      await prefs.setString(StorageKeys.token, authResponse.token);
+      await prefs.setString(StorageKeys.userRole, authResponse.user.role);
 
       if (!mounted) return;
 
@@ -104,11 +93,11 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } finally {
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -119,7 +108,6 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            // Permite hacer scroll si el teclado cubre los campos
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Form(
               key: _formKey,
@@ -127,15 +115,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // --- 1. Logo ---
-                  // Usamos un ícono como placeholder para el logo
                   Image.asset(
                     'lib/assets/plancito_rec-removebg-preview.png',
                     height: 150,
                   ),
                   const SizedBox(height: 48.0),
-
-                  // --- 2. Campo de Email ---
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -147,7 +131,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Por favor, ingresa tu correo';
                       }
-                      // Validación simple de email
                       if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
                         return 'Por favor, ingresa un correo válido';
                       }
@@ -155,11 +138,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 16.0),
-
-                  // --- 3. Campo de Contraseña ---
                   TextFormField(
                     controller: _passwordController,
-                    obscureText: _isPasswordObscured, // Ocultar contraseña
+                    obscureText: _isPasswordObscured,
                     decoration: _buildInputDecoration(
                       hintText: 'Contraseña',
                       prefixIcon: Icons.lock_outline,
@@ -181,20 +162,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Por favor, ingresa tu contraseña';
                       }
-                      if (value.length < 6) {
-                        return 'La contraseña debe tener al menos 6 caracteres';
+                      if (value.length < 8) {
+                        return 'La contraseña debe tener al menos 8 caracteres';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16.0),
-
-                  // --- 4. Olvidaste tu contraseña ---
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
-                        // Navegamos a la pantalla de recuperar contraseña
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => const ForgotPasswordScreen(),
@@ -208,13 +186,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 24.0),
-
-                  // --- Botón de Login ---
                   ElevatedButton(
                     onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: kPrimaryColor,
-                      foregroundColor: Colors.white, // Color del texto
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.0),
@@ -240,8 +216,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                   ),
                   const SizedBox(height: 16.0),
-
-                  // --- 5. Crear Cuenta ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -251,7 +225,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          // Navegamos a la pantalla de registro
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => const RegisterScreen(),
@@ -277,7 +250,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Método helper para unificar el estilo de los InputDecoration
   InputDecoration _buildInputDecoration({
     required String hintText,
     required IconData prefixIcon,
@@ -295,18 +267,18 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.0),
-        borderSide: BorderSide.none, // Sin borde por defecto
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.0),
         borderSide: BorderSide(
-          color: Colors.grey[300]!, // Borde sutil cuando no está enfocado
+          color: Colors.grey[300]!,
         ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.0),
         borderSide: const BorderSide(
-          color: kPrimaryColor, // Borde de color primario al enfocar
+          color: kPrimaryColor,
           width: 2.0,
         ),
       ),

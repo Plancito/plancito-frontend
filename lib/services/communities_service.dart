@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hackathon_frontend/screens/auth/login.dart';
+import 'package:hackathon_frontend/utils/storage_keys.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -182,7 +182,7 @@ class CommunitiesService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw CommunitiesException('Token de autenticación no disponible');
     }
@@ -228,7 +228,7 @@ class CommunitiesService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw CommunitiesException('Token de autenticación no disponible');
     }
@@ -277,7 +277,7 @@ class CommunitiesService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw CommunitiesException('Token de autenticación no disponible');
     }
@@ -322,7 +322,7 @@ class CommunitiesService {
       name: 'CommunitiesService',
     );
     developer.log(
-      'createCommunity -> payload preview: ${payloadJson.length > 500 ? payloadJson.substring(0, 500) + "..." : payloadJson}',
+      'createCommunity -> payload preview: ${payloadJson.length > 500 ? '${payloadJson.substring(0, 500)}...' : payloadJson}',
       name: 'CommunitiesService',
     );
 
@@ -370,7 +370,7 @@ class CommunitiesService {
     );
 
     developer.log(
-      'createCommunity <- raw body preview: ${response.body.length > 400 ? response.body.substring(0, 400) + "..." : response.body}',
+      'createCommunity <- raw body preview: ${response.body.length > 400 ? '${response.body.substring(0, 400)}...' : response.body}',
       name: 'CommunitiesService',
     );
     developer.log(
@@ -424,7 +424,7 @@ class CommunitiesService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw CommunitiesException('Token de autenticación no disponible');
     }
@@ -493,7 +493,7 @@ class CommunitiesService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw CommunitiesException('Token de autenticación no disponible');
     }
@@ -572,7 +572,7 @@ class CommunitiesService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw CommunitiesException('Token de autenticación no disponible');
     }
@@ -671,7 +671,7 @@ class CommunitiesService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw CommunitiesException('Token de autenticación no disponible');
     }

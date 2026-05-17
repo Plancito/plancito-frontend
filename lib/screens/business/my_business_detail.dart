@@ -1,8 +1,8 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:hackathon_frontend/services/places_service.dart';
 import 'package:hackathon_frontend/services/products_service.dart';
-
-import '../auth/login.dart'; // Para los colores
+import 'package:hackathon_frontend/utils/colors.dart';
 //import 'create_event_screen.dart'; // Descomentar cuando la tengas
 import 'products/create_products.dart';
 
@@ -135,7 +135,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           // Navigator.of(context).push(MaterialPageRoute(builder: (context) => const CreateEventScreen()));
-          print('Crear nuevo plan para ${widget.place.name}');
+          developer.log('Crear nuevo plan para ${widget.place.name}', name: 'BusinessDetailsScreen');
         },
         backgroundColor: kPrimaryColor,
         icon: const Icon(Icons.add, color: Colors.white),
@@ -182,12 +182,11 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
         _productsError = 'No pudimos cargar los productos del negocio.';
       });
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _isLoadingProducts = false;
+        });
       }
-      setState(() {
-        _isLoadingProducts = false;
-      });
     }
   }
 
@@ -221,7 +220,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundColor: kPrimaryColor.withOpacity(0.2),
+            backgroundColor: kPrimaryColor.withValues(alpha:0.2),
             backgroundImage:
                 widget.place.image != null &&
                     widget.place.image!.isNotEmpty
@@ -319,7 +318,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
         else
           Column(
             children: [
-              ..._products.map(_buildProductCard).toList(),
+              ..._products.map(_buildProductCard),
               if (_isLoadingProducts)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12.0),
@@ -354,7 +353,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                         return Container(
                           width: 72,
                           height: 72,
-                          color: kPrimaryColor.withOpacity(0.1),
+                          color: kPrimaryColor.withValues(alpha:0.1),
                           child: const Icon(
                             Icons.fastfood_outlined,
                             color: kPrimaryColor,
@@ -365,7 +364,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                   : Container(
                       width: 72,
                       height: 72,
-                      color: kPrimaryColor.withOpacity(0.1),
+                      color: kPrimaryColor.withValues(alpha:0.1),
                       child: const Icon(
                         Icons.fastfood_outlined,
                         color: kPrimaryColor,
@@ -420,7 +419,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.15),
+        color: Colors.orange.withValues(alpha:0.15),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -471,11 +470,11 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
   }
 
   Widget _buildProductsEmpty() {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
-        children: const [
+        children: [
           Icon(Icons.sentiment_dissatisfied, color: kPrimaryColor, size: 40),
           SizedBox(height: 12),
           Text(
@@ -581,7 +580,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        ..._activePlans.map((plan) => _buildPlanCard(plan)).toList(),
+        ..._activePlans.map((plan) => _buildPlanCard(plan)),
       ],
     );
   }
@@ -607,7 +606,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.2),
+                color: statusColor.withValues(alpha:0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -651,7 +650,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        ..._recentReviews.map((review) => _buildReviewCard(review)).toList(),
+        ..._recentReviews.map((review) => _buildReviewCard(review)),
       ],
     );
   }
@@ -726,7 +725,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: kPrimaryColor.withOpacity(0.1),
+        color: kPrimaryColor.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(

@@ -1,6 +1,7 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:hackathon_frontend/screens/home/home_screen.dart';
-import 'login.dart'; // Para los colores
+import 'login.dart';
 
 // --- Modelo de Datos para un Interés ---
 class Interest {
@@ -53,7 +54,7 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
   void _saveInterests() {
     if (_selectedInterests.length >= _minSelection) {
       // --- Lógica para guardar las preferencias en el backend ---
-      print('Intereses guardados: $_selectedInterests');
+      developer.log('Intereses guardados: $_selectedInterests', name: 'InterestSelectionScreen');
       // -----------------------------------------------------------
 
       // Navegamos a la pantalla principal de la app
@@ -132,7 +133,7 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: kPrimaryColor.withOpacity(0.3),
+                    color: kPrimaryColor.withValues(alpha:0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -169,7 +170,7 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             spreadRadius: 1,
             blurRadius: 10,
           ),

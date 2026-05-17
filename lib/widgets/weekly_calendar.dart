@@ -141,7 +141,7 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
                         right: 6,
                         child: Container(
                           padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: kSecondaryColor,
                             shape: BoxShape.circle,
                           ),

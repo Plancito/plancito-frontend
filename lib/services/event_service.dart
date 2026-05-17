@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hackathon_frontend/models/event_model.dart';
 import 'package:hackathon_frontend/models/event_response_model.dart';
-import 'package:hackathon_frontend/screens/auth/login.dart';
+import 'package:hackathon_frontend/utils/storage_keys.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image/image.dart' as img;
@@ -23,7 +23,7 @@ class EventService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw EventException('Token de autenticación no disponible');
     }
@@ -96,12 +96,12 @@ class EventService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw EventException('Token de autenticación no disponible');
     }
 
-    final organizerId = prefs.getInt(LoginStorageKeys.userId);
+    final organizerId = prefs.getInt(StorageKeys.userId);
     if (organizerId == null) {
       throw EventException('Información del usuario no disponible');
     }
@@ -205,9 +205,9 @@ class EventService {
     }
 
     if (response.statusCode == 400 || response.statusCode == 422) {
-      print(decodedBody);
-      print("Response Body: ${response.body}");
-      print("Response Status: ${response.statusCode}");
+      developer.log('createEvent -> decodedBody: $decodedBody', name: 'EventService');
+      developer.log('createEvent -> body: ${response.body}', name: 'EventService');
+      developer.log('createEvent -> status: ${response.statusCode}', name: 'EventService');
       final message = decodedBody is Map<String, dynamic>
           ? decodedBody['message'] as String? ?? 'Datos inválidos'
           : 'Datos inválidos';
@@ -231,7 +231,7 @@ class EventService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw EventException('Token de autenticación no disponible');
     }
@@ -290,7 +290,7 @@ class EventService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw EventException('Token de autenticación no disponible');
     }
@@ -352,7 +352,7 @@ class EventService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw EventException('Token de autenticación no disponible');
     }
@@ -409,7 +409,7 @@ class EventService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw EventException('Token de autenticación no disponible');
     }
@@ -484,7 +484,7 @@ class EventService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(LoginStorageKeys.token);
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw EventException('Token de autenticación no disponible');
     }

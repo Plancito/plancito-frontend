@@ -49,7 +49,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       for (final joinedEvent in joinedEvents) {
         final event = joinedEvent.event;
         final startDate = tz.TZDateTime.from(event.timeBegin, tz.local);
-        final endDate = tz.TZDateTime.from(event.timeEnd, tz.local);
+        final endDate = tz.TZDateTime.from(event.timeEnd ?? event.timeBegin, tz.local);
 
         for (var day = startDate;
             day.isBefore(endDate.add(const Duration(days: 1)));

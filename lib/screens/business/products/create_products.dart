@@ -118,12 +118,11 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
         ),
       );
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
       }
-      setState(() {
-        _isSubmitting = false;
-      });
     }
   }
 
@@ -158,13 +157,13 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                     height: 150,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: kPrimaryColor.withOpacity(0.05),
+                      color: kPrimaryColor.withValues(alpha:0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: kPrimaryColor.withOpacity(0.15)),
+                      border: Border.all(color: kPrimaryColor.withValues(alpha:0.15)),
                     ),
-                    child: Column(
+                    child: const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(Icons.add_a_photo_outlined,
                             color: kPrimaryColor, size: 36),
                         SizedBox(height: 8),
@@ -192,7 +191,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _selectedCategory,
+                    initialValue: _selectedCategory,
                     decoration: _buildInputDecoration(
                       hintText: 'Categoría',
                       icon: Icons.category_outlined,
@@ -267,7 +266,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                     subtitle: const Text('Desactiva si se agota el stock.'),
                     value: _isAvailable,
                     onChanged: (value) => setState(() => _isAvailable = value),
-                    activeColor: kPrimaryColor,
+                    activeThumbColor: kPrimaryColor,
                     secondary: Icon(
                       _isAvailable
                           ? Icons.check_circle_outline
@@ -325,7 +324,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      prefixIcon: Icon(icon, color: kPrimaryColor.withOpacity(0.7)),
+      prefixIcon: Icon(icon, color: kPrimaryColor.withValues(alpha:0.7)),
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(

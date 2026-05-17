@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hackathon_frontend/services/auth_service.dart';
+import 'package:hackathon_frontend/utils/storage_keys.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,7 +21,7 @@ class ProfileService {
     final uri = Uri.parse('$baseUrl/api/users/$id');
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw ProfileException('Token de autenticación no disponible');
     }
@@ -64,7 +65,7 @@ class ProfileService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw ProfileException('Token de autenticación no disponible');
     }
@@ -137,7 +138,7 @@ class ProfileService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
+    final token = prefs.getString(StorageKeys.token);
     if (token == null || token.isEmpty) {
       throw ProfileException('Token de autenticación no disponible');
     }
@@ -164,8 +165,8 @@ class ProfileService {
             body: jsonEncode(payload),
           )
           .timeout(const Duration(seconds: 30));
-    } on Exception {
-      print('Error updating profile image');
+    } on Exception catch (e, st) {
+      developer.log('updateProfileImage -> error', name: 'ProfileService', error: e, stackTrace: st);
       throw ProfileException('No fue posible conectar con el servidor');
     }
 

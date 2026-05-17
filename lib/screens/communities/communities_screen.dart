@@ -165,7 +165,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                   prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
                   filled: true,
                   fillColor: Colors.white,
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     vertical: 0,
                     horizontal: 16,
                   ),
@@ -285,7 +285,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.sentiment_dissatisfied,
               color: auth.kPrimaryColor,
               size: 48,
@@ -397,7 +397,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
         borderRadius: BorderRadius.circular(15),
         onTap: () {
           // Log the values of community when the card is tapped
-          developer.log('Community card tapped: ' + community.toString(), name: 'CommunitySummary');
+          developer.log('Community card tapped: $community', name: 'CommunitySummary');
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) =>

@@ -1,5 +1,6 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
-import 'login.dart'; // Importamos para usar las constantes de color
+import 'login.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -32,7 +33,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       // --- TU LÓGICA AQUÍ ---
       // Aquí llamarías a tu servicio (Firebase Auth, API propia)
       // para enviar el correo de reseteo.
-      print('Enviando enlace de reseteo a: $email');
+      developer.log('Enviando enlace de reseteo a: $email', name: 'ForgotPasswordScreen');
 
       // Mostramos un feedback al usuario
       ScaffoldMessenger.of(context).showSnackBar(
@@ -61,7 +62,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         backgroundColor: kBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: kPrimaryColor),
+          icon: const Icon(Icons.arrow_back_ios, color: kPrimaryColor),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(

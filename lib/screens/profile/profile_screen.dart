@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
-import 'dart:io';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:hackathon_frontend/services/profile_service.dart';
@@ -110,10 +109,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
         );
       } finally {
-        if (!mounted) return;
-        setState(() {
-          _isUploading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isUploading = false;
+          });
+        }
       }
     }
   }
@@ -137,10 +137,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SnackBar(content: Text('Error al eliminar la imagen'), backgroundColor: Colors.red),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isUploading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
     }
   }
 
@@ -168,7 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       final fetchedFirstName = user.name.trim();
       final fetchedLastName = user.lastName.trim();
-      final fullName = '${fetchedFirstName} ${fetchedLastName}'.trim();
+      final fullName = '$fetchedFirstName $fetchedLastName'.trim();
 
       setState(() {
         _userFirstName = fetchedFirstName;
@@ -231,12 +232,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               CircleAvatar(
                                 radius: 100,
-                                backgroundColor: kPrimaryColor.withOpacity(0.2),
+                                backgroundColor: kPrimaryColor.withValues(alpha:0.2),
                                 backgroundImage: _profileImageUrl.isNotEmpty
                                     ? NetworkImage(_profileImageUrl)
                                     : null,
                                 child: _profileImageUrl.isEmpty
-                                    ? Icon(
+                                    ? const Icon(
                                         Icons.person,
                                         size: 100,
                                         color: kPrimaryColor,
@@ -248,7 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   width: 200,
                                   height: 200,
                                   decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.5),
+                                    color: Colors.black.withValues(alpha:0.5),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Center(
@@ -258,7 +259,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ),
                               if (!_isUploading)
-                                Positioned(
+                                const Positioned(
                                   bottom: 0,
                                   right: 0,
                                   child: CircleAvatar(
@@ -378,9 +379,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: const [
+                              children: [
                                 Icon(Icons.edit_outlined, color: kPrimaryColor),
                                 SizedBox(width: 8.0),
                                 Text('Editar Perfil'),
@@ -549,7 +550,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await prefs.remove(LoginStorageKeys.token);
     await prefs.remove(LoginStorageKeys.userRole);
 
-    print('Cerrando sesión...');
+    if (!context.mounted) return;
+    developer.log('Cerrando sesión...', name: 'ProfileScreen');
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Sesión cerrada correctamente.'),
