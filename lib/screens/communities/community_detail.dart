@@ -5,6 +5,7 @@ import 'package:hackathon_frontend/models/event_model.dart';
 import 'package:hackathon_frontend/services/communities_service.dart';
 import 'package:hackathon_frontend/services/event_service.dart';
 import 'package:hackathon_frontend/screens/auth/login.dart';
+import 'package:hackathon_frontend/utils/storage_keys.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -349,8 +350,8 @@ class _CommunityRequestsScreenState extends State<CommunityRequestsScreen> {
 
 class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
     with SingleTickerProviderStateMixin {
-  late CommunitiesService _communitiesService;
-  late EventService _eventService;
+  final CommunitiesService _communitiesService = CommunitiesService();
+  final EventService _eventService = EventService();
   CommunityDetail? _community;
   bool _isLoading = true;
   String? _errorMessage;
@@ -368,8 +369,6 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
   @override
   void initState() {
     super.initState();
-    _communitiesService = CommunitiesService();
-    _eventService = EventService();
     _tabController = TabController(length: 2, vsync: this);
     _fetchCommunity();
     _initializeLocaleAndLoadEvents();
@@ -388,7 +387,7 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
       int? userId;
       try {
         final prefs = await SharedPreferences.getInstance();
-        userId = prefs.getInt(LoginStorageKeys.userId);
+        userId = prefs.getInt(StorageKeys.userId);
       } catch (_) {
         userId = null;
       }
@@ -433,7 +432,7 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
       return;
     }
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (context) => CommunityRequestsScreen(
           communityId: community.id,
           communityName: community.name,
@@ -679,9 +678,9 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
                             );
                           },
                         )
-                      : Container(
+                      : const ColoredBox(
                           color: kPrimaryColor,
-                          child: const Icon(
+                          child: Icon(
                             Icons.groups,
                             color: Colors.white,
                             size: 96,
@@ -789,7 +788,7 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
                       ? _openRequests
                       : (_isJoinRequesting || _joinRequestSent)
                       ? null
-                      : () => _requestJoinCommunity(),
+                      : _requestJoinCommunity,
                   icon: _isJoinRequesting
                       ? const SizedBox(
                           width: 20,
@@ -858,14 +857,14 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
   }
 
   Widget _buildEventFilters() {
-    final statusItems = const [
+    const statusItems = [
       DropdownMenuItem(value: '', child: Text('Todos los estados')),
       DropdownMenuItem(value: 'ACTIVE', child: Text('Activos')),
       DropdownMenuItem(value: 'CANCELLED', child: Text('Cancelados')),
       DropdownMenuItem(value: 'FINISHED', child: Text('Finalizados')),
     ];
 
-    final visibilityItems = const [
+    const visibilityItems = [
       DropdownMenuItem(value: '', child: Text('Todas las visibilidades')),
       DropdownMenuItem(value: 'PUBLIC', child: Text('Públicos')),
       DropdownMenuItem(value: 'PRIVATE', child: Text('Privados')),
@@ -1042,7 +1041,7 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    secondaryPlace?.isNotEmpty == true
+                    secondaryPlace?.isNotEmpty ?? false
                         ? '$placeName · $secondaryPlace'
                         : placeName,
                   ),
@@ -1099,7 +1098,7 @@ class _CommunityDetailsScreenState extends State<CommunityDetailsScreen>
       : member;
     final String? nameFromUser = userObj['name'] as String?;
     final String? lastNameFromUser = userObj['lastName'] as String?;
-    final String name = ('${nameFromUser ?? ''} ${lastNameFromUser ?? ''}').trim();
+    final String name = '${nameFromUser ?? ''} ${lastNameFromUser ?? ''}'.trim();
 
     final String? emailFromUser = userObj['email'] as String?;
     final String email = emailFromUser ?? '';
@@ -1178,7 +1177,7 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return Container(color: kBackgroundColor, child: _tabBar);
+    return ColoredBox(color: kBackgroundColor, child: _tabBar);
   }
 
   @override
@@ -1190,7 +1189,6 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
 extension StringCapitalization on String {
   String capitalize() {
     if (isEmpty) return this;
-    return this[0].toUpperCase() + substring(1).toLowerCase();
+    return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
   }
 }
-

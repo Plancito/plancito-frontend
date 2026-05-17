@@ -13,7 +13,7 @@ class MealListItem extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (context) => MealDetailsScreen(meal: meal),
           ),
         );

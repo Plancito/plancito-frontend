@@ -66,7 +66,7 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
   }
 
   void _showEventsBottomSheet(BuildContext context, DateTime day, List<Event> events) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) {
         return Column(

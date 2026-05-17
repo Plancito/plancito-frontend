@@ -1,14 +1,10 @@
 import 'dart:convert';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hackathon_frontend/utils/storage_keys.dart';
+import 'package:hackathon_frontend/services/base_api_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
-class PlacesService {
+class PlacesService extends BaseApiService {
   PlacesService();
-
-  String get _baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://hackathon-back-theta.vercel.app';
 
   Future<PlacesResponse> fetchPlaces({
     String? city,
@@ -18,16 +14,7 @@ class PlacesService {
     int page = 1,
     int limit = 10,
   }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw PlacesException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw PlacesException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final queryParameters = <String, String>{
       'page': page.toString(),
@@ -54,16 +41,15 @@ class PlacesService {
     http.Response response;
     try {
       response = await http
-          .get(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
+          .get(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw PlacesException('No fue posible conectar con el servidor');
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw PlacesException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 200) {
@@ -80,7 +66,7 @@ class PlacesService {
 
       final places = data
           .whereType<Map<String, dynamic>>()
-          .map((json) => PlaceSummary.fromJson(json))
+          .map(PlaceSummary.fromJson)
           .toList();
 
       final paginationInfo = PlacePagination.fromJson(
@@ -88,10 +74,6 @@ class PlacesService {
       );
 
       return PlacesResponse(places: places, pagination: paginationInfo);
-    }
-
-    if (response.statusCode == 401) {
-      throw PlacesException('Sesión expirada, inicia sesión nuevamente');
     }
 
     throw PlacesException('Error inesperado (${response.statusCode})');
@@ -108,16 +90,7 @@ class PlacesService {
     required String mapUrl,
     required String image,
   }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw PlacesException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw PlacesException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/places');
 
@@ -126,10 +99,7 @@ class PlacesService {
       response = await http
           .post(
             uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
+            headers: headers,
             body: jsonEncode({
               'name': name.trim(),
               'direction': direction.trim(),
@@ -151,6 +121,11 @@ class PlacesService {
         ? jsonDecode(response.body)
         : null;
 
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw PlacesException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
+
     if (response.statusCode == 201) {
       if (decodedBody is! Map<String, dynamic>) {
         throw PlacesException('Respuesta inválida del servidor');
@@ -165,10 +140,6 @@ class PlacesService {
       throw PlacesException(message);
     }
 
-    if (response.statusCode == 401) {
-      throw PlacesException('Sesión expirada, inicia sesión nuevamente');
-    }
-
     if (decodedBody is Map<String, dynamic>) {
       final message =
           decodedBody['message'] as String? ??
@@ -180,16 +151,7 @@ class PlacesService {
   }
 
   Future<Place> fetchPlaceById(int id) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw PlacesException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw PlacesException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/places/$id');
 
@@ -197,13 +159,15 @@ class PlacesService {
     try {
       response = await http.get(
         uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        headers: headers,
       ).timeout(const Duration(seconds: 15));
     } on Exception {
       throw PlacesException('No fue posible conectar con el servidor');
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw PlacesException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 200) {
@@ -212,10 +176,6 @@ class PlacesService {
         throw PlacesException('Respuesta inválida del servidor');
       }
       return Place.fromJson(decoded);
-    }
-
-    if (response.statusCode == 401) {
-      throw PlacesException('Sesión expirada, inicia sesión nuevamente');
     }
 
     if (response.statusCode == 404) {

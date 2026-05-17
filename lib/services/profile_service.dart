@@ -1,41 +1,21 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hackathon_frontend/services/auth_service.dart';
-import 'package:hackathon_frontend/utils/storage_keys.dart';
+import 'package:hackathon_frontend/models/user_model.dart';
+import 'package:hackathon_frontend/services/base_api_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
-class ProfileService {
+class ProfileService extends BaseApiService {
   ProfileService();
 
-  String get _baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://hackathon-back-theta.vercel.app';
-
-  Future<AuthUser> fetchUser(int id) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw ProfileException('API_BASE_URL no está configurado');
-    }
-
+  Future<User> fetchUser(int id) async {
     final uri = Uri.parse('$baseUrl/api/users/$id');
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw ProfileException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     http.Response response;
     try {
       response = await http
-          .get(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
+          .get(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw ProfileException('No fue posible conectar con el servidor');
@@ -43,7 +23,12 @@ class ProfileService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return AuthUser.fromJson(data);
+      return User.fromJson(data);
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw ProfileException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 404) {
@@ -53,24 +38,14 @@ class ProfileService {
     throw ProfileException('Error inesperado (${response.statusCode})');
   }
 
-  Future<AuthUser> updateUser({
+  Future<User> updateUser({
     required String name,
     required String lastName,
     required String city,
     String? image,
   }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw ProfileException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw ProfileException('Token de autenticación no disponible');
-    }
-
     final uri = Uri.parse('$baseUrl/api/users/me');
+    final headers = await authHeaders();
     final payload = <String, dynamic>{
       'name': name.trim(),
       'lastName': lastName.trim(),
@@ -82,40 +57,37 @@ class ProfileService {
     }
 
     developer.log(
-      'updateUser -> PUT $uri with token: $token and payload: ${jsonEncode(payload)}',
+      'updateUser -> PUT $uri, payload keys: ${payload.keys.join(', ')}',
       name: 'ProfileService',
     );
 
     http.Response response;
     try {
       response = await http
-          .put(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: jsonEncode(payload),
-          )
+          .put(uri, headers: headers, body: jsonEncode(payload))
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw ProfileException('No fue posible conectar con el servidor');
     }
 
     developer.log(
-      'updateUser <- status: ${response.statusCode}, body: ${response.body}',
+      'updateUser <- status: ${response.statusCode}',
       name: 'ProfileService',
     );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return AuthUser.fromJson(data);
+      return User.fromJson(data);
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw ProfileException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 400 || response.statusCode == 422) {
-      final decoded = response.body.isNotEmpty
-          ? jsonDecode(response.body)
-          : null;
+      final decoded =
+          response.body.isNotEmpty ? jsonDecode(response.body) : null;
       final message = decoded is Map<String, dynamic>
           ? decoded['message'] as String? ?? 'Datos inválidos'
           : 'Datos inválidos';
@@ -129,61 +101,49 @@ class ProfileService {
     throw ProfileException('Error inesperado (${response.statusCode})');
   }
 
-  Future<AuthUser> updateProfileImage({
-    required String image,
-  }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw ProfileException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw ProfileException('Token de autenticación no disponible');
-    }
-
+  Future<User> updateProfileImage({required String image}) async {
     final uri = Uri.parse('$baseUrl/api/users/me');
-    final payload = {
-      'image': image,
-    };
+    final headers = await authHeaders();
+    final payload = {'image': image};
 
     developer.log(
-      'updateProfileImage -> PUT $uri with token: $token',
+      'updateProfileImage -> PUT $uri',
       name: 'ProfileService',
     );
 
     http.Response response;
     try {
       response = await http
-          .put(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: jsonEncode(payload),
-          )
+          .put(uri, headers: headers, body: jsonEncode(payload))
           .timeout(const Duration(seconds: 30));
     } on Exception catch (e, st) {
-      developer.log('updateProfileImage -> error', name: 'ProfileService', error: e, stackTrace: st);
+      developer.log(
+        'updateProfileImage -> error',
+        name: 'ProfileService',
+        error: e,
+        stackTrace: st,
+      );
       throw ProfileException('No fue posible conectar con el servidor');
     }
 
     developer.log(
-      'updateProfileImage <- status: ${response.statusCode}, body: ${response.body}',
+      'updateProfileImage <- status: ${response.statusCode}',
       name: 'ProfileService',
     );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return AuthUser.fromJson(data);
+      return User.fromJson(data);
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw ProfileException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 400 || response.statusCode == 422) {
-      final decoded = response.body.isNotEmpty
-          ? jsonDecode(response.body)
-          : null;
+      final decoded =
+          response.body.isNotEmpty ? jsonDecode(response.body) : null;
       final message = decoded is Map<String, dynamic>
           ? decoded['message'] as String? ?? 'Datos inválidos'
           : 'Datos inválidos';

@@ -1,6 +1,8 @@
 export 'package:hackathon_frontend/utils/colors.dart';
 export 'package:hackathon_frontend/utils/storage_keys.dart';
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hackathon_frontend/utils/colors.dart';
 import 'package:hackathon_frontend/utils/storage_keys.dart';
@@ -9,9 +11,6 @@ import 'forgot_password.dart';
 import '../home/home_screen.dart';
 import 'package:hackathon_frontend/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-// Backward-compat alias so screens that still reference LoginStorageKeys compile.
-typedef LoginStorageKeys = StorageKeys;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,8 +22,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  late TextEditingController _emailController;
-  late TextEditingController _passwordController;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   bool _isPasswordObscured = true;
   bool _isLoading = false;
@@ -33,8 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _emailController = TextEditingController();
-    _passwordController = TextEditingController();
   }
 
   @override
@@ -76,9 +73,9 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
+      unawaited(Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(builder: (context) => const HomeScreen()),
+      ));
     } on AuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -174,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: TextButton(
                       onPressed: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(
+                          MaterialPageRoute<void>(
                             builder: (context) => const ForgotPasswordScreen(),
                           ),
                         );
@@ -226,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(
+                            MaterialPageRoute<void>(
                               builder: (context) => const RegisterScreen(),
                             ),
                           );

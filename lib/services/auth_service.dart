@@ -1,22 +1,18 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+import 'package:hackathon_frontend/models/user_model.dart';
+import 'package:hackathon_frontend/services/base_api_service.dart';
 import 'package:http/http.dart' as http;
 
-class AuthService {
+class AuthService extends BaseApiService {
   AuthService();
-
-  String get _baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://hackathon-back-theta.vercel.app';
 
   Future<AuthResponse> login({
     required String email,
     required String password,
   }) async {
-    final baseUrl = _baseUrl.trim();
     developer.log('[AuthService] baseUrl: $baseUrl');
-    if (baseUrl.isEmpty) {
-      throw AuthException('API_BASE_URL no está configurado');
-    }
 
     final uri = Uri.parse('$baseUrl/api/auth/login');
     developer.log('[AuthService] uri: $uri');
@@ -47,7 +43,7 @@ class AuthService {
         throw AuthException('Respuesta inválida del servidor');
       }
 
-      return AuthResponse(token: token, user: AuthUser.fromJson(userData));
+      return AuthResponse(token: token, user: User.fromJson(userData));
     }
 
     if (response.statusCode == 400 || response.statusCode == 401) {
@@ -67,11 +63,7 @@ class AuthService {
     required String city,
     required String country,
   }) async {
-    final baseUrl = _baseUrl.trim();
     developer.log('[AuthService] signup baseUrl: $baseUrl');
-    if (baseUrl.isEmpty) {
-      throw AuthException('API_BASE_URL no está configurado');
-    }
 
     final uri = Uri.parse('$baseUrl/api/auth/signup');
     developer.log('[AuthService] signup uri: $uri');
@@ -116,7 +108,7 @@ class AuthService {
           if (token != null && userData != null) {
             return AuthResponse(
               token: token,
-              user: AuthUser.fromJson(userData),
+              user: User.fromJson(userData),
             );
           }
         } on FormatException catch (e, st) {
@@ -125,7 +117,7 @@ class AuthService {
         }
       }
 
-      return await login(email: email, password: password);
+      return login(email: email, password: password);
     }
 
     if (response.statusCode == 400 || response.statusCode == 409) {
@@ -142,42 +134,7 @@ class AuthResponse {
   AuthResponse({required this.token, required this.user});
 
   final String token;
-  final AuthUser user;
-}
-
-class AuthUser {
-  AuthUser({
-    required this.id,
-    required this.email,
-    required this.name,
-    required this.lastName,
-    required this.role,
-    required this.membership,
-    required this.city,
-    this.image,
-  });
-
-  factory AuthUser.fromJson(Map<String, dynamic> json) {
-    return AuthUser(
-      id: json['id'] as int,
-      email: json['email'] as String? ?? '',
-      name: json['name'] as String? ?? '',
-      lastName: json['lastName'] as String? ?? '',
-      role: json['role'] as String? ?? '',
-      membership: json['membership'] as String? ?? '',
-      city: json['city'] as String? ?? '',
-      image: json['image'] as String?,
-    );
-  }
-
-  final int id;
-  final String email;
-  final String name;
-  final String lastName;
-  final String role;
-  final String membership;
-  final String city;
-  final String? image;
+  final User user;
 }
 
 class AuthException implements Exception {

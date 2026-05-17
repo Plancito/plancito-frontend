@@ -1,46 +1,53 @@
 import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hackathon_frontend/models/notification_model.dart';
-import 'package:hackathon_frontend/utils/storage_keys.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
-class NotificationService {
+import 'package:hackathon_frontend/models/notification_model.dart';
+import 'package:hackathon_frontend/services/base_api_service.dart';
+import 'package:http/http.dart' as http;
+
+class NotificationService extends BaseApiService {
   NotificationService();
 
-  String get _baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://hackathon-back-theta.vercel.app';
-
-  Future<http.Response> _makeAuthenticatedRequest(Future<http.Response> Function(Map<String, String>) request) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw Exception('Token de autenticación no disponible');
-    }
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
-    return request(headers);
-  }
-
   Future<List<Notification>> fetchNotifications() async {
-    final url = Uri.parse('$_baseUrl/api/notifications');
-    final response = await _makeAuthenticatedRequest((headers) => http.get(url, headers: headers));
+    final headers = await authHeaders();
+    final url = Uri.parse('$baseUrl/api/notifications');
+
+    final response = await http.get(url, headers: headers);
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw NotificationException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((item) => Notification.fromJson(item)).toList();
-    } else {
-      throw Exception('Failed to load notifications');
+      final data = json.decode(response.body) as List<dynamic>;
+      return data.map((item) => Notification.fromJson(item as Map<String, dynamic>)).toList();
     }
+
+    throw NotificationException('Failed to load notifications');
   }
 
   Future<void> markAllAsRead() async {
-    final url = Uri.parse('$_baseUrl/api/notifications/mark-all-read');
-    final response = await _makeAuthenticatedRequest((headers) => http.put(url, headers: headers));
+    final headers = await authHeaders();
+    final url = Uri.parse('$baseUrl/api/notifications/mark-all-read');
+
+    final response = await http.put(url, headers: headers);
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw NotificationException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
 
     if (response.statusCode != 200 && response.statusCode != 204) {
-      throw Exception('Failed to mark all notifications as read');
+      throw NotificationException('Failed to mark all notifications as read');
     }
   }
+}
+
+class NotificationException implements Exception {
+  NotificationException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }

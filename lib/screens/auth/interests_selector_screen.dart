@@ -59,7 +59,7 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
 
       // Navegamos a la pantalla principal de la app
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute<void>(builder: (context) => const HomeScreen()),
         (Route<dynamic> route) => false,
       );
     }

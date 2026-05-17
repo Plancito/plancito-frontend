@@ -134,7 +134,7 @@ class _WhatsForEventSectionState extends State<WhatsForEventSection> {
                     event: event,
                     onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(
+                        MaterialPageRoute<void>(
                           builder: (_) => EventDetailsScreen(event: event),
                         ),
                       );

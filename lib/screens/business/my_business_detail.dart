@@ -204,12 +204,12 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
 
   Future<void> _openCreateProduct() async {
     final created = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
+      MaterialPageRoute<bool>(
         builder: (context) => CreateProductScreen(placeId: widget.place.id),
       ),
     );
 
-    if (created == true) {
+    if (created ?? false) {
       await _loadProducts();
     }
   }
@@ -402,7 +402,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                       spacing: 8,
                       runSpacing: 6,
                       children: product.promotions
-                          .map((promo) => _buildPromotionChip(promo))
+                          .map(_buildPromotionChip)
                           .toList(),
                     ),
                   ],
@@ -580,13 +580,13 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        ..._activePlans.map((plan) => _buildPlanCard(plan)),
+        ..._activePlans.map(_buildPlanCard),
       ],
     );
   }
 
   Widget _buildPlanCard(BusinessPlan plan) {
-    Color statusColor = plan.status == 'Activo' ? Colors.green : Colors.orange;
+    final Color statusColor = plan.status == 'Activo' ? Colors.green : Colors.orange;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
@@ -650,7 +650,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        ..._recentReviews.map((review) => _buildReviewCard(review)),
+        ..._recentReviews.map(_buildReviewCard),
       ],
     );
   }
@@ -697,16 +697,12 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
     switch (status.toUpperCase()) {
       case 'ACCEPTED':
         color = Colors.green;
-        break;
       case 'PENDING':
         color = Colors.orange;
-        break;
       case 'REJECTED':
         color = Colors.red;
-        break;
       default:
         color = kPrimaryColor;
-        break;
     }
 
     return Chip(

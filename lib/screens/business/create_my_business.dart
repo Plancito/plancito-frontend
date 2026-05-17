@@ -87,7 +87,7 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final proprietorId = prefs.getInt(LoginStorageKeys.userId);
+      final proprietorId = prefs.getInt(StorageKeys.userId);
 
       if (proprietorId == null) {
         throw PlacesException('No se encontró el usuario autenticado.');

@@ -31,7 +31,7 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
-  final AIChatService _aiChatService = const AIChatService();
+  final AIChatService _aiChatService = AIChatService();
   String? _conversationId;
   late final RecorderController _recorderController;
   late final AudioRecorder _audioRecorder;
@@ -164,16 +164,14 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
         return false;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
+        const SnackBar(
+          content: Text(
             'Activa el permiso de micrófono en la configuración para grabar notas de voz.',
           ),
           action: SnackBarAction(
             label: 'Abrir',
             textColor: Colors.white,
-            onPressed: () {
-              openAppSettings();
-            },
+            onPressed: openAppSettings,
           ),
           backgroundColor: Colors.redAccent,
         ),
@@ -196,12 +194,10 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
                   : 'Se requieren permisos de micrófono para grabar.',
             ),
             action: isDeniedForever
-                ? SnackBarAction(
+                ? const SnackBarAction(
                     label: 'Abrir',
                     textColor: Colors.white,
-                    onPressed: () {
-                      openAppSettings();
-                    },
+                    onPressed: openAppSettings,
                   )
                 : null,
             backgroundColor: Colors.redAccent,
@@ -243,7 +239,7 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('No se pudo grabar audio: ${e.toString()}'),
+            content: Text('No se pudo grabar audio: $e'),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -305,7 +301,7 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo grabar audio: ${e.toString()}'),
+          content: Text('No se pudo grabar audio: $e'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -524,9 +520,9 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
           borderRadius: BorderRadius.circular(20).copyWith(
             bottomLeft: isUser
                 ? const Radius.circular(20)
-                : const Radius.circular(0),
+                : Radius.zero,
             bottomRight: isUser
-                ? const Radius.circular(0)
+                ? Radius.zero
                 : const Radius.circular(20),
           ),
           boxShadow: [
@@ -593,7 +589,7 @@ class _AIPlannerScreenState extends State<AIPlannerScreen> {
                   color: Colors.white,
                 ),
                 onPressed:
-                    _isLoading ? null : () => _toggleAudioRecording(),
+                    _isLoading ? null : _toggleAudioRecording,
               ),
             ),
             const SizedBox(width: 8),

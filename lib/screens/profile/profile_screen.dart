@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import 'dart:convert';
@@ -19,7 +21,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  static const _userIdKey = 'userId';
   // Datos del usuario (se rellenan desde la API)
   String _userFirstName = '';
   String _userLastName = '';
@@ -29,7 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _userMembership = '';
   String _userCity = '';
   int? _userId;
-  late ProfileService _profileService;
+  final ProfileService _profileService = ProfileService();
   bool _isLoading = true;
   bool _isUploading = false;
   String? _errorMessage;
@@ -37,12 +38,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _profileService = ProfileService();
     _loadProfile();
   }
 
   void _showImageSourceActionSheet() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) => SafeArea(
         child: Wrap(
@@ -153,7 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getInt(_userIdKey);
+      final userId = prefs.getInt(StorageKeys.userId);
       if (userId == null) {
         if (!mounted) return;
         setState(() {
@@ -351,7 +351,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                                     final updated = await Navigator.push<bool>(
                                       context,
-                                      MaterialPageRoute(
+                                      MaterialPageRoute<bool>(
                                         builder: (context) => EditProfileScreen(
                                           currentName: fallbackFirstName,
                                           currentLastName: fallbackLastName,
@@ -364,8 +364,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ),
                                     );
 
-                                    if (updated == true && mounted) {
-                                      _loadProfile();
+                                    if ((updated ?? false) && mounted) {
+                                      unawaited(_loadProfile());
                                     }
                                   },
                             style: TextButton.styleFrom(
@@ -403,7 +403,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              MaterialPageRoute<void>(
                                 builder: (context) =>
                                     const ChangePasswordScreen(),
                               ),
@@ -416,7 +416,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              MaterialPageRoute<void>(
                                 builder: (context) =>
                                     const NotificationsScreen(),
                               ),
@@ -429,7 +429,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              MaterialPageRoute<void>(
                                 builder: (context) => const PrivacyScreen(),
                               ),
                             );
@@ -441,7 +441,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              MaterialPageRoute<void>(
                                 builder: (context) => const SupportScreen(),
                               ),
                             );
@@ -546,9 +546,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _logout(BuildContext context) async {
     // En un app real, aquí borrarías tokens, datos de usuario, etc.
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_userIdKey);
-    await prefs.remove(LoginStorageKeys.token);
-    await prefs.remove(LoginStorageKeys.userRole);
+    await prefs.remove(StorageKeys.userId);
+    await prefs.remove(StorageKeys.token);
+    await prefs.remove(StorageKeys.userRole);
 
     if (!context.mounted) return;
     developer.log('Cerrando sesión...', name: 'ProfileScreen');
@@ -559,9 +559,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
     // Navegar de vuelta al login y eliminar todas las rutas anteriores
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    unawaited(Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (context) => const LoginScreen()),
       (Route<dynamic> route) => false,
-    );
+    ));
   }
 }

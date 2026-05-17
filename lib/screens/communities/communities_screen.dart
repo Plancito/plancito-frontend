@@ -5,6 +5,7 @@ import 'package:hackathon_frontend/screens/communities/community_detail.dart'
     as detail;
 import 'package:hackathon_frontend/screens/communities/create_community.dart';
 import 'package:hackathon_frontend/services/communities_service.dart';
+import 'package:hackathon_frontend/utils/storage_keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:developer' as developer;
 
@@ -20,7 +21,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
   // Controlador para la búsqueda
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  late CommunitiesService _communitiesService;
+  final CommunitiesService _communitiesService = CommunitiesService();
   List<CommunitySummary> _discoverCommunities = [];
   List<CommunitySummary> _myCommunities = [];
   bool _isLoadingDiscover = true;
@@ -32,7 +33,6 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
   @override
   void initState() {
     super.initState();
-    _communitiesService = CommunitiesService();
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text;
@@ -60,7 +60,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
 
     try {
       prefs = await SharedPreferences.getInstance();
-      userId = prefs.getInt(auth.LoginStorageKeys.userId);
+      userId = prefs.getInt(StorageKeys.userId);
     } on Exception {
       userId = null;
     }
@@ -192,8 +192,8 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
         // --- Botón para Crear Comunidad ---
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            final result = await Navigator.of(context).push(
-              MaterialPageRoute(
+            final result = await Navigator.of(context).push<CreatedCommunity>(
+              MaterialPageRoute<CreatedCommunity>(
                 builder: (context) => const CreateCommunityScreen(),
               ),
             );
@@ -205,7 +205,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
             if (result is CreatedCommunity) {
               final userId = _currentUserId ??
                   (await SharedPreferences.getInstance())
-                      .getInt(auth.LoginStorageKeys.userId);
+                      .getInt(StorageKeys.userId);
 
               if (userId != null) {
                 final existsInMy =
@@ -399,7 +399,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
           // Log the values of community when the card is tapped
           developer.log('Community card tapped: $community', name: 'CommunitySummary');
           Navigator.of(context).push(
-            MaterialPageRoute(
+            MaterialPageRoute<void>(
               builder: (context) =>
                   detail.CommunityDetailsScreen(communityId: community.id),
             ),

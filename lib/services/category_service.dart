@@ -1,40 +1,45 @@
 import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hackathon_frontend/models/category_model.dart';
-import 'package:hackathon_frontend/utils/storage_keys.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
-class CategoryService {
+import 'package:hackathon_frontend/models/category_model.dart';
+import 'package:hackathon_frontend/services/base_api_service.dart';
+import 'package:http/http.dart' as http;
+
+class CategoryService extends BaseApiService {
   CategoryService();
 
-  String get _baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://hackathon-back-theta.vercel.app';
-
   Future<List<Category>> fetchCategories() async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw Exception('API_BASE_URL no está configurado');
+    final headers = await authHeaders();
+
+    final uri = Uri.parse('$baseUrl/api/categories');
+
+    http.Response response;
+    try {
+      response = await http
+          .get(uri, headers: headers)
+          .timeout(const Duration(seconds: 15));
+    } on Exception {
+      throw CategoryException('No fue posible conectar con el servidor');
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw Exception('Token de autenticación no disponible');
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw CategoryException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
-
-    final uri = Uri.parse('$_baseUrl/api/categories');
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
-
-    final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 15));
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((item) => Category.fromJson(item)).toList();
-    } else {
-      throw Exception('Failed to load categories');
+      final data = json.decode(response.body) as List<dynamic>;
+      return data.map((item) => Category.fromJson(item as Map<String, dynamic>)).toList();
     }
+
+    throw CategoryException('Failed to load categories');
   }
+}
+
+class CategoryException implements Exception {
+  CategoryException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }

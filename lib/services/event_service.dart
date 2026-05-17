@@ -2,31 +2,18 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hackathon_frontend/models/event_model.dart';
 import 'package:hackathon_frontend/models/event_response_model.dart';
-import 'package:hackathon_frontend/utils/storage_keys.dart';
+import 'package:hackathon_frontend/services/base_api_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image/image.dart' as img;
+import 'package:shared_preferences/shared_preferences.dart';
 
-class EventService {
+class EventService extends BaseApiService {
   EventService();
 
-  String get _baseUrl =>
-      dotenv.env['API_BASE_URL'] ?? 'https://hackathon-back-theta.vercel.app';
-
   Future<EventResponse> fetchEvents({int page = 1, int limit = 10}) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw EventException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw EventException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final queryParameters = <String, String>{
       'page': page.toString(),
@@ -40,16 +27,15 @@ class EventService {
     http.Response response;
     try {
       response = await http
-          .get(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
+          .get(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw EventException('No fue posible conectar con el servidor');
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw EventException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 200) {
@@ -58,15 +44,11 @@ class EventService {
         throw EventException('Respuesta inválida del servidor');
       }
       try {
-        EventResponse eventRes = EventResponse.fromJson(decoded);
+        final eventRes = EventResponse.fromJson(decoded);
         return eventRes;
       } catch (e) {
         throw EventException('Error al parsear la respuesta');
       }
-    }
-
-    if (response.statusCode == 401) {
-      throw EventException('Sesión expirada, inicia sesión nuevamente');
     }
 
     throw EventException('Error inesperado (${response.statusCode})');
@@ -78,7 +60,7 @@ class EventService {
     required DateTime timeBegin,
     DateTime? timeEnd,
     required int placeId,
-    int? categoryId, // Add this
+    int? categoryId,
     int? minAge,
     String? status,
     required String visibility,
@@ -86,22 +68,14 @@ class EventService {
     String? externalUrl,
     File? imageFile,
   }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw EventException('API_BASE_URL no está configurado');
-    }
-
     if (visibility.toUpperCase() == 'PUBLIC' && communityId == null) {
       throw EventException('Debes indicar la comunidad para eventos públicos');
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw EventException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
-    final organizerId = prefs.getInt(StorageKeys.userId);
+    final prefs = await SharedPreferences.getInstance();
+    final organizerId = prefs.getInt('userId');
     if (organizerId == null) {
       throw EventException('Información del usuario no disponible');
     }
@@ -175,10 +149,7 @@ class EventService {
       response = await http
           .post(
             uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
+            headers: headers,
             body: jsonEncode(payload),
           )
           .timeout(const Duration(seconds: 15));
@@ -193,6 +164,11 @@ class EventService {
     final decodedBody = response.body.isNotEmpty
         ? jsonDecode(response.body)
         : null;
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw EventException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
 
     if (response.statusCode == 201 || response.statusCode == 200) {
       if (decodedBody is Map<String, dynamic>) {
@@ -214,10 +190,6 @@ class EventService {
       throw EventException(message);
     }
 
-    if (response.statusCode == 401) {
-      throw EventException('Sesión expirada, inicia sesión nuevamente');
-    }
-
     final message = decodedBody is Map<String, dynamic>
         ? decodedBody['message'] as String? ?? 'No fue posible crear el evento'
         : 'No fue posible crear el evento';
@@ -225,36 +197,26 @@ class EventService {
   }
 
   Future<List<Event>> fetchOrganizedEvents() async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw EventException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw EventException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/users/me/events');
 
     http.Response response;
     try {
       response = await http
-          .get(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
+          .get(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw EventException('No fue posible conectar con el servidor');
     }
 
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw EventException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
+
     if (response.statusCode == 200) {
-      final decoded = response.body.isNotEmpty ? jsonDecode(response.body) : [];
+      final decoded = response.body.isNotEmpty ? jsonDecode(response.body) : <dynamic>[];
 
       if (decoded is List) {
         return decoded
@@ -276,44 +238,30 @@ class EventService {
       throw EventException('Respuesta inválida del servidor');
     }
 
-    if (response.statusCode == 401) {
-      throw EventException('Sesión expirada, inicia sesión nuevamente');
-    }
-
     throw EventException('Error inesperado (${response.statusCode})');
   }
 
   Future<List<MyEvent>> fetchJoinedEvents() async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw EventException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw EventException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/users/me/events/joined');
 
     http.Response response;
     try {
       response = await http
-          .get(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
+          .get(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw EventException('No fue posible conectar con el servidor');
     }
 
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw EventException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
+
     if (response.statusCode == 200) {
-      final decoded = response.body.isNotEmpty ? jsonDecode(response.body) : [];
+      final decoded = response.body.isNotEmpty ? jsonDecode(response.body) : <dynamic>[];
 
       if (decoded is List) {
         return decoded
@@ -335,10 +283,6 @@ class EventService {
       throw EventException('Respuesta inválida del servidor');
     }
 
-    if (response.statusCode == 401) {
-      throw EventException('Sesión expirada, inicia sesión nuevamente');
-    }
-
     throw EventException('Error inesperado (${response.statusCode})');
   }
 
@@ -346,16 +290,7 @@ class EventService {
     required int eventId,
     required String visibility,
   }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw EventException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw EventException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/events/$eventId');
 
@@ -364,15 +299,17 @@ class EventService {
       response = await http
           .put(
             uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
+            headers: headers,
             body: jsonEncode({'visibility': visibility}),
           )
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw EventException('No fue posible conectar con el servidor');
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw EventException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 200) {
@@ -381,10 +318,6 @@ class EventService {
         return Event.fromJson(decoded);
       }
       throw EventException('Respuesta inválida del servidor');
-    }
-
-    if (response.statusCode == 401) {
-      throw EventException('Sesión expirada, inicia sesión nuevamente');
     }
 
     final decoded = response.body.isNotEmpty ? jsonDecode(response.body) : null;
@@ -403,16 +336,7 @@ class EventService {
     int page = 1,
     int limit = 10,
   }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw EventException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw EventException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final queryParameters = <String, String>{
       'page': page.toString(),
@@ -438,16 +362,15 @@ class EventService {
     http.Response response;
     try {
       response = await http
-          .get(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
+          .get(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw EventException('No fue posible conectar con el servidor');
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw EventException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 200) {
@@ -470,50 +393,32 @@ class EventService {
       throw EventException('Respuesta inválida del servidor');
     }
 
-    if (response.statusCode == 401) {
-      throw EventException('Sesión expirada, inicia sesión nuevamente');
-    }
-
     throw EventException('Error inesperado (${response.statusCode})');
   }
 
   Future<void> joinEvent(int eventId) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw EventException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw EventException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/events/$eventId/join');
 
     http.Response response;
     try {
       response = await http
-          .post(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
+          .post(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw EventException('No fue posible conectar con el servidor');
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw EventException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 200 ||
         response.statusCode == 201 ||
         response.statusCode == 204) {
       return;
-    }
-
-    if (response.statusCode == 401) {
-      throw EventException('Sesión expirada, inicia sesión nuevamente');
     }
 
     final decoded = response.body.isNotEmpty ? jsonDecode(response.body) : null;

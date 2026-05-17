@@ -37,7 +37,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _cityController;
   bool _isSaving = false;
   String? _errorMessage;
-  late ProfileService _profileService;
+  final ProfileService _profileService = ProfileService();
   File? _imageFile;
   String? _imageBase64;
   bool _imageDeleted = false;
@@ -49,7 +49,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController = TextEditingController(text: widget.currentName);
     _lastNameController = TextEditingController(text: widget.currentLastName);
     _cityController = TextEditingController(text: widget.currentCity);
-    _profileService = ProfileService();
   }
 
   @override
@@ -61,7 +60,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _showImageSourceActionSheet() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) => SafeArea(
         child: Wrap(

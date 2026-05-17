@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hackathon_frontend/utils/storage_keys.dart';
+import 'package:hackathon_frontend/services/base_api_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 class CommunitySummary {
   CommunitySummary({
@@ -169,30 +167,13 @@ class CommunityJoinRequest {
   }
 }
 
-class CommunitiesService {
+class CommunitiesService extends BaseApiService {
   CommunitiesService();
 
-  String get _baseUrl =>
-      dotenv.env['API_BASE_URL'] ?? 'https://hackathon-back-theta.vercel.app';
-
   Future<List<CommunitySummary>> fetchCommunities() async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw CommunitiesException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw CommunitiesException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/communities');
-
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
 
     http.Response response;
     try {
@@ -201,6 +182,11 @@ class CommunitiesService {
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw CommunitiesException('No fue posible conectar con el servidor');
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw CommunitiesException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 200) {
@@ -214,40 +200,26 @@ class CommunitiesService {
           .toList();
     }
 
-    if (response.statusCode == 401) {
-      throw CommunitiesException('Sesión expirada, inicia sesión nuevamente');
-    }
-
     throw CommunitiesException('Error inesperado (${response.statusCode})');
   }
 
   Future<CommunityDetail> fetchCommunityDetail(int id) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw CommunitiesException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw CommunitiesException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/communities/$id');
 
     http.Response response;
     try {
       response = await http
-          .get(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
+          .get(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw CommunitiesException('No fue posible conectar con el servidor');
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw CommunitiesException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 200) {
@@ -271,25 +243,12 @@ class CommunitiesService {
     int categoryId,
     String? image
   ) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw CommunitiesException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw CommunitiesException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/communities');
 
     developer.log(
       'createCommunity -> baseUrl: $baseUrl, uri: $uri',
-      name: 'CommunitiesService',
-    );
-    developer.log(
-      'createCommunity -> token present: ${token.isNotEmpty}, token length: ${token.length}',
       name: 'CommunitiesService',
     );
     developer.log(
@@ -326,10 +285,6 @@ class CommunitiesService {
       name: 'CommunitiesService',
     );
 
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
     developer.log(
       'createCommunity -> headers: Content-Type=${headers['Content-Type']}, Authorization length=${headers['Authorization']?.length ?? 0}',
       name: 'CommunitiesService',
@@ -378,6 +333,11 @@ class CommunitiesService {
       name: 'CommunitiesService',
     );
 
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw CommunitiesException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
+
     if (response.statusCode == 201) {
       developer.log(
         'createCommunity <- decodedBody runtimeType=${decodedBody.runtimeType}',
@@ -406,10 +366,6 @@ class CommunitiesService {
       throw CommunitiesException(message);
     }
 
-    if (response.statusCode == 401) {
-      throw CommunitiesException('Sesión expirada, inicia sesión nuevamente');
-    }
-
     final errorMessage = decodedBody is Map<String, dynamic>
         ? decodedBody['message'] as String? ??
               'Error inesperado al crear la comunidad'
@@ -418,23 +374,9 @@ class CommunitiesService {
   }
 
   Future<List<CommunitySummary>> fetchUserCommunities(int userId) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw CommunitiesException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw CommunitiesException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/users/member/$userId');
-
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
 
     http.Response response;
     try {
@@ -443,6 +385,11 @@ class CommunitiesService {
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw CommunitiesException('No fue posible conectar con el servidor');
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw CommunitiesException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 200) {
@@ -473,10 +420,6 @@ class CommunitiesService {
       }).toList();
     }
 
-    if (response.statusCode == 401) {
-      throw CommunitiesException('Sesión expirada, inicia sesión nuevamente');
-    }
-
     if (response.statusCode == 404) {
       throw CommunitiesException('Comunidades no encontradas para el usuario');
     }
@@ -487,16 +430,7 @@ class CommunitiesService {
   Future<List<CommunityJoinRequest>> fetchCommunityJoinRequests(
     int communityId,
   ) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw CommunitiesException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw CommunitiesException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/communities/$communityId/requests');
 
@@ -507,13 +441,7 @@ class CommunitiesService {
         name: 'CommunitiesService',
       );
       response = await http
-          .get(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
+          .get(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw CommunitiesException('No fue posible conectar con el servidor');
@@ -524,8 +452,13 @@ class CommunitiesService {
       name: 'CommunitiesService',
     );
 
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw CommunitiesException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
+
     if (response.statusCode == 200) {
-      final decoded = response.body.isNotEmpty ? jsonDecode(response.body) : [];
+      final decoded = response.body.isNotEmpty ? jsonDecode(response.body) : <dynamic>[];
 
       developer.log(
         'fetchCommunityJoinRequests <- decoded=${decoded.runtimeType}: $decoded',
@@ -552,10 +485,6 @@ class CommunitiesService {
       throw CommunitiesException('Respuesta inválida del servidor');
     }
 
-    if (response.statusCode == 401) {
-      throw CommunitiesException('Sesión expirada, inicia sesión nuevamente');
-    }
-
     if (response.statusCode == 404) {
       throw CommunitiesException('Comunidad no encontrada');
     }
@@ -566,32 +495,22 @@ class CommunitiesService {
   Future<CommunityJoinRequestResult> requestJoinCommunity(
     int communityId,
   ) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw CommunitiesException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw CommunitiesException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/communities/$communityId/requests');
 
     http.Response response;
     try {
       response = await http
-          .post(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
+          .post(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw CommunitiesException('No fue posible conectar con el servidor');
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw CommunitiesException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 200 ||
@@ -607,10 +526,6 @@ class CommunitiesService {
         status: CommunityJoinRequestStatus.success,
         message: message,
       );
-    }
-
-    if (response.statusCode == 401) {
-      throw CommunitiesException('Sesión expirada, inicia sesión nuevamente');
     }
 
     if (response.statusCode == 409) {
@@ -665,16 +580,7 @@ class CommunitiesService {
     required String endpoint,
     required String successMessage,
   }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw CommunitiesException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw CommunitiesException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse(
       '$baseUrl/api/communities/$communityId/requests/$requestId/$endpoint',
@@ -687,13 +593,7 @@ class CommunitiesService {
         name: 'CommunitiesService',
       );
       response = await http
-          .post(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
+          .post(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw CommunitiesException('No fue posible conectar con el servidor');
@@ -704,6 +604,11 @@ class CommunitiesService {
       name: 'CommunitiesService',
     );
 
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw CommunitiesException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
+
     if (response.statusCode == 200 || response.statusCode == 204) {
       final decoded = response.body.isNotEmpty ? jsonDecode(response.body) : null;
       final requestsRemaining = decoded is Map<String, dynamic>
@@ -713,10 +618,6 @@ class CommunitiesService {
         communityId: communityId,
         pendingRequests: requestsRemaining,
       );
-    }
-
-    if (response.statusCode == 401) {
-      throw CommunitiesException('Sesión expirada, inicia sesión nuevamente');
     }
 
     final decoded = response.body.isNotEmpty ? jsonDecode(response.body) : null;

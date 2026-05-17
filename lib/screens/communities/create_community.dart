@@ -20,11 +20,11 @@ class CreateCommunityScreen extends StatefulWidget {
 class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  late TextEditingController _nameController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _rulesController;
-  late CommunitiesService _communitiesService;
-  late CategoryService _categoryService;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _rulesController = TextEditingController();
+  final CommunitiesService _communitiesService = CommunitiesService();
+  final CategoryService _categoryService = CategoryService();
 
   int? _selectedCategoryId;
   bool _isPrivate = false;
@@ -40,11 +40,6 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
-    _descriptionController = TextEditingController();
-    _rulesController = TextEditingController();
-    _communitiesService = CommunitiesService();
-    _categoryService = CategoryService();
     _loadCategories();
   }
 

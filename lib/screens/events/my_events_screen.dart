@@ -133,14 +133,17 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           b.timeBegin.compareTo(a.timeBegin)); // Past events ascending
 
       setState(() {
-        _organizedEvents.clear();
-        _organizedEvents.addAll(newOrganized);
+        _organizedEvents
+          ..clear()
+          ..addAll(newOrganized);
 
-        _attendingEvents.clear();
-        _attendingEvents.addAll(newAttending);
+        _attendingEvents
+          ..clear()
+          ..addAll(newAttending);
 
-        _pastEvents.clear();
-        _pastEvents.addAll(newPast);
+        _pastEvents
+          ..clear()
+          ..addAll(newPast);
       });
     } on EventException catch (e) {
       if (!mounted) return;
@@ -185,7 +188,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const CalendarScreen()),
+                  MaterialPageRoute<void>(builder: (context) => const CalendarScreen()),
                 );
               },
             ),
@@ -209,11 +212,11 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             final created = await Navigator.of(context).push<bool>(
-              MaterialPageRoute(
+              MaterialPageRoute<bool>(
                 builder: (context) => const CreateEventScreen(),
               ),
             );
-            if (created == true) {
+            if (created ?? false) {
               await _loadEvents();
             }
           },
@@ -339,7 +342,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
       'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
     ];
     final date = event.timeBegin.toLocal();
-    String formattedDate = '${date.day} de ${meses[date.month - 1]} - ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    final String formattedDate = '${date.day} de ${meses[date.month - 1]} - ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 20.0),
@@ -351,7 +354,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           // Log JSON de evento al hacer click
           developer.log(jsonEncode(_eventToJson(event)));
           Navigator.of(context).push(
-            MaterialPageRoute(
+            MaterialPageRoute<void>(
               builder: (context) => EventDetailsScreen(event: event),
             ),
           );
@@ -445,7 +448,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
 
   Widget _buildParticipantIndicator(int current, int max) {
     final safeMax = (max <= 0) ? 1 : max;
-    double ratio = (current / safeMax).clamp(0.0, 1.0);
+    final double ratio = (current / safeMax).clamp(0.0, 1.0);
 
     return Stack(
       children: [

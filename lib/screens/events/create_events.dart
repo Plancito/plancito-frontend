@@ -22,12 +22,12 @@ class CreateEventScreen extends StatefulWidget {
 class _CreateEventScreenState extends State<CreateEventScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  late TextEditingController _titleController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _locationController;
-  late TextEditingController _participantsController;
-  late TextEditingController _minAgeController;
-  late TextEditingController _externalUrlController;
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _participantsController = TextEditingController();
+  final TextEditingController _minAgeController = TextEditingController();
+  final TextEditingController _externalUrlController = TextEditingController();
 
   DateTime? _selectedDate;
   int? _selectedCategoryId;
@@ -52,12 +52,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController();
-    _descriptionController = TextEditingController();
-    _locationController = TextEditingController();
-    _participantsController = TextEditingController();
-    _minAgeController = TextEditingController();
-    _externalUrlController = TextEditingController();
     _loadInitialData();
   }
 

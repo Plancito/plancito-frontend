@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hackathon_frontend/screens/auth/interests_selector_screen.dart';
 import 'package:hackathon_frontend/services/auth_service.dart';
@@ -18,20 +20,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Controladores para los campos de texto
-  late TextEditingController _nameController;
-  late TextEditingController _lastNameController;
-  late TextEditingController _emailController;
-  late TextEditingController _birthDateController;
-  late TextEditingController _cityController;
-  late TextEditingController _countryController;
-  late TextEditingController _passwordController;
-  late TextEditingController _confirmPasswordController;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _birthDateController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _countryController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   // Variables para manejar la visibilidad de las contraseñas
   bool _isPasswordObscured = true;
   bool _isConfirmPasswordObscured = true;
   bool _isLoading = false;
-  late AuthService _authService;
+  final AuthService _authService = AuthService();
   String _selectedGender = 'MAN';
   DateTime? _selectedBirthDate;
   // File? _documentImage;
@@ -40,15 +42,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
-    _lastNameController = TextEditingController();
-    _emailController = TextEditingController();
-    _birthDateController = TextEditingController();
-    _cityController = TextEditingController();
-    _countryController = TextEditingController();
-    _passwordController = TextEditingController();
-    _confirmPasswordController = TextEditingController();
-    _authService = AuthService();
   }
 
   @override
@@ -99,8 +92,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(LoginStorageKeys.userId, response.user.id);
-      await prefs.setString(LoginStorageKeys.token, response.token);
+      await prefs.setInt(StorageKeys.userId, response.user.id);
+      await prefs.setString(StorageKeys.token, response.token);
 
       if (!mounted) {
         return;
@@ -113,11 +106,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
+      unawaited(Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
           builder: (context) => const InterestSelectionScreen(),
         ),
-      );
+      ));
     } on AuthException catch (e) {
       if (!mounted) {
         return;

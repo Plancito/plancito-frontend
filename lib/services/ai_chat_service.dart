@@ -2,15 +2,13 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hackathon_frontend/models/ai_audio_reply.dart';
-import 'package:hackathon_frontend/utils/storage_keys.dart';
+import 'package:hackathon_frontend/services/base_api_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class AIChatService {
-  const AIChatService();
+class AIChatService extends BaseApiService {
+  AIChatService();
 
   static const Set<String> _allowedAudioExtensions = {
     '.mp3',
@@ -22,22 +20,11 @@ class AIChatService {
     '.aac',
   };
 
-  String get _baseUrl => dotenv.env['API_BASE_URL'] ?? '';
-
   Future<AIChatReply> sendMessage({
     required String prompt,
     String? conversationId,
   }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw AIChatException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw AIChatException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/ai/chat');
 
@@ -52,10 +39,7 @@ class AIChatService {
       response = await http
           .post(
             uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
+            headers: headers,
             body: jsonEncode(payload),
           )
           .timeout(const Duration(seconds: 30));
@@ -63,15 +47,16 @@ class AIChatService {
       throw AIChatException('No fue posible conectar con el servidor');
     }
 
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw AIChatException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
+
     if (response.statusCode == 200) {
       final decoded = response.body.isNotEmpty
           ? jsonDecode(response.body)
           : null;
       return _parseResponse(decoded);
-    }
-
-    if (response.statusCode == 401) {
-      throw AIChatException('Sesión expirada, inicia sesión nuevamente');
     }
 
     if (response.statusCode == 400 || response.statusCode == 422) {
@@ -93,21 +78,16 @@ class AIChatService {
     String? conversationId,
     bool resetConversation = false,
   }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw AIChatException('API_BASE_URL no está configurado');
-    }
-
     if (audioFilePath.trim().isEmpty) {
       throw AIChatException('Ruta del archivo de audio requerida');
     }
 
     final audioFile = File(audioFilePath);
-    if (!await audioFile.exists()) {
+    if (!audioFile.existsSync()) {
       throw AIChatException('Archivo de audio no encontrado');
     }
 
-    final fileSize = await audioFile.length();
+    final fileSize = audioFile.lengthSync();
     if (fileSize > 10 * 1024 * 1024) {
       throw AIChatException('El archivo de audio supera el límite de 10 MB');
     }
@@ -130,11 +110,7 @@ class AIChatService {
       name: 'AIChatService.sendAudioMessage',
     );
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw AIChatException('Token de autenticación no disponible');
-    }
+    final token = (await authHeaders())['Authorization']?.replaceFirst('Bearer ', '') ?? '';
 
     final uri = Uri.parse('$baseUrl/api/ai/audio');
 
@@ -192,15 +168,16 @@ class AIChatService {
 
     final response = await http.Response.fromStream(streamedResponse);
 
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw AIChatException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
+
     if (response.statusCode == 200) {
       final decoded = response.body.isNotEmpty
           ? jsonDecode(response.body)
           : null;
       return _parseAudioResponse(decoded);
-    }
-
-    if (response.statusCode == 401) {
-      throw AIChatException('Sesión expirada, inicia sesión nuevamente');
     }
 
     if (response.statusCode == 400 || response.statusCode == 422) {
@@ -222,20 +199,11 @@ class AIChatService {
     String? conversationId,
     bool resetConversation = false,
   }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw AIChatException('API_BASE_URL no está configurado');
-    }
-
     if (audioUrl.trim().isEmpty) {
       throw AIChatException('URL del archivo de audio requerida');
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw AIChatException('Token de autenticación no disponible');
-    }
+    final token = (await authHeaders())['Authorization']?.replaceFirst('Bearer ', '') ?? '';
 
     final uri = Uri.parse('$baseUrl/api/ai/audio');
 
@@ -275,15 +243,16 @@ class AIChatService {
 
     final response = await http.Response.fromStream(streamedResponse);
 
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw AIChatException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
+
     if (response.statusCode == 200) {
       final decoded = response.body.isNotEmpty
           ? jsonDecode(response.body)
           : null;
       return _parseAudioResponse(decoded);
-    }
-
-    if (response.statusCode == 401) {
-      throw AIChatException('Sesión expirada, inicia sesión nuevamente');
     }
 
     if (response.statusCode == 400 || response.statusCode == 422) {

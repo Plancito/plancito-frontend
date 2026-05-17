@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hackathon_frontend/screens/auth/login.dart';
+import 'package:hackathon_frontend/utils/storage_keys.dart';
 import 'package:hackathon_frontend/screens/business/my_businesses_screen.dart';
 import 'package:hackathon_frontend/screens/communities/communities_screen.dart';
 import 'package:hackathon_frontend/screens/events/my_events_screen.dart';
@@ -36,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pages = _buildPages(includeBusiness: false);
     _navItems = _buildNavItems(includeBusiness: false);
-    _initializeNavigation();
+    unawaited(_initializeNavigation());
   }
 
   @override
@@ -48,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _initializeNavigation() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final role = prefs.getString(LoginStorageKeys.userRole);
+      final role = prefs.getString(StorageKeys.userRole);
       final isMarket = role?.toUpperCase() == 'MARKET';
 
       if (!mounted) {

@@ -31,7 +31,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _fetchEvents();
   }
 
-  void _fetchEvents() async {
+  Future<void> _fetchEvents() async {
     setState(() {
       _isLoading = true;
       _error = null;
@@ -98,7 +98,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _showEventsBottomSheet(BuildContext context, List<Event> events) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) {
         return Column(

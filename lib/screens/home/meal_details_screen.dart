@@ -55,7 +55,7 @@ class MealDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16.0),
                   const Text(
-                      'Juicy and tender, our Ribeye Steak is grilled to perfection and served with a side of crisp and flavorful vegetables. A classic dish that will satisfy any carnivore\'s cravings.'),
+                      "Juicy and tender, our Ribeye Steak is grilled to perfection and served with a side of crisp and flavorful vegetables. A classic dish that will satisfy any carnivore's cravings."),
                   const SizedBox(height: 16.0),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

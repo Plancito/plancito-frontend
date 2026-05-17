@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hackathon_frontend/services/places_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,15 +39,16 @@ class _MyBusinessesListScreenState extends State<MyBusinessesListScreen> {
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
     super.dispose();
   }
 
   Future<void> _initializeUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getInt(LoginStorageKeys.userId);
+      final userId = prefs.getInt(StorageKeys.userId);
 
       if (!mounted) {
         return;
@@ -191,12 +194,12 @@ class _MyBusinessesListScreenState extends State<MyBusinessesListScreen> {
             ? null
             : () async {
                 final created = await Navigator.of(context).push<bool>(
-                  MaterialPageRoute(
+                  MaterialPageRoute<bool>(
                     builder: (context) => const CreateBusinessScreen(),
                   ),
                 );
 
-                if (created == true) {
+                if (created ?? false) {
                   await _loadPlaces(reset: true);
                 }
               },
@@ -251,11 +254,11 @@ class _MyBusinessesListScreenState extends State<MyBusinessesListScreen> {
           try {
             final fullPlace = await _placesService.fetchPlaceById(place.id);
             if (mounted) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
+              unawaited(Navigator.of(context).push(
+                MaterialPageRoute<void>(
                   builder: (context) => BusinessDetailsScreen(place: fullPlace),
                 ),
-              );
+              ));
             }
           } on PlacesException catch (e) {
             if (mounted) {

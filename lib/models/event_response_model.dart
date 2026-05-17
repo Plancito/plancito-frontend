@@ -14,8 +14,8 @@ class EventResponse {
   });
 
   factory EventResponse.fromJson(Map<String, dynamic> json) {
-    var eventList = json['data'] as List? ?? <dynamic>[];
-    List<Event> events = eventList.map((i) => Event.fromJson(i as Map<String, dynamic>)).toList();
+    final eventList = json['data'] as List? ?? <dynamic>[];
+    final List<Event> events = eventList.map((i) => Event.fromJson(i as Map<String, dynamic>)).toList();
 
     final pagination = json['pagination'] as Map<String, dynamic>?;
     return EventResponse(

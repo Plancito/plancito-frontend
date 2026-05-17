@@ -233,7 +233,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                         child: TextFormField(
                           controller: _priceController,
                           decoration: _buildInputDecoration(
-                            hintText: 'Precio (\$)',
+                            hintText: r'Precio ($)',
                             icon: Icons.attach_money_outlined,
                           ),
                           keyboardType: const TextInputType.numberWithOptions(
@@ -248,7 +248,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                         child: TextFormField(
                           controller: _offerPriceController,
                           decoration: _buildInputDecoration(
-                            hintText: 'Precio de Oferta (\$)',
+                            hintText: r'Precio de Oferta ($)',
                             icon: Icons.local_offer_outlined,
                           ),
                           keyboardType: const TextInputType.numberWithOptions(

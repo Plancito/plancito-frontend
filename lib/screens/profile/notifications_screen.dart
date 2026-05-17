@@ -33,7 +33,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(content: Text('Error: $e')),
         );
       }
     }
@@ -69,8 +69,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               return const Center(child: Text('No tienes notificaciones.'));
             }
 
-            final notifications = snapshot.data!;
-            notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+            final notifications = snapshot.data!
+              ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
             return ListView.builder(
               itemCount: notifications.length,

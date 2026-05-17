@@ -11,12 +11,11 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _emailController;
+  final TextEditingController _emailController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _emailController = TextEditingController();
   }
 
   @override
@@ -28,7 +27,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   // Función para enviar el enlace
   void _sendResetLink() {
     if (_formKey.currentState!.validate()) {
-      String email = _emailController.text;
+      final String email = _emailController.text;
 
       // --- TU LÓGICA AQUÍ ---
       // Aquí llamarías a tu servicio (Firebase Auth, API propia)

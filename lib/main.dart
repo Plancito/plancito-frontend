@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hackathon_frontend/screens/auth/login.dart';
 import 'package:hackathon_frontend/screens/home/home_screen.dart';
+import 'package:hackathon_frontend/services/base_api_service.dart';
+import 'package:hackathon_frontend/utils/app_navigator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
@@ -10,22 +12,30 @@ import 'package:timezone/timezone.dart' as tz;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize timezone database and set local timezone to UTC-4 (Caracas)
+
   tzdata.initializeTimeZones();
   final caracas = tz.getLocation('America/Caracas');
   tz.setLocalLocation(caracas);
-  
+
   await initializeDateFormatting('es', null);
-  try{
+  try {
     if (kIsWeb) {
       await dotenv.load();
     } else {
       await dotenv.load(fileName: '.env');
     }
-  } catch(e){
+  } catch (e) {
     debugPrint('Error loading .env file: $e');
   }
+
+  // Wire session-expiry redirect. Called by BaseApiService on any 401 response.
+  BaseApiService.onSessionExpired = () {
+    appNavigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
+  };
+
   runApp(const MyApp());
 }
 
@@ -37,7 +47,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late Future<bool> _hasSessionFuture;
+  late final Future<bool> _hasSessionFuture;
 
   @override
   void initState() {
@@ -47,7 +57,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<bool> _hasStoredToken() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
+    final token = prefs.getString(StorageKeys.token);
     return token != null && token.isNotEmpty;
   }
 
@@ -55,17 +65,13 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Plancito',
-
+      navigatorKey: appNavigatorKey,
       theme: ThemeData(
         primaryColor: kPrimaryColor,
-
         scaffoldBackgroundColor: kBackgroundColor,
-
         visualDensity: VisualDensity.adaptivePlatformDensity,
-
         colorScheme: ColorScheme.fromSeed(seedColor: kPrimaryColor),
       ),
-
       home: FutureBuilder<bool>(
         future: _hasSessionFuture,
         builder: (context, snapshot) {

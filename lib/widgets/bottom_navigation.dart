@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class BottomNavigation extends StatelessWidget {
   final int selectedIndex;
-  final Function(int) onItemTapped;
+  final void Function(int) onItemTapped;
   final List<BottomNavigationBarItem> items;
 
   const BottomNavigation({

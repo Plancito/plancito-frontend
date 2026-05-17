@@ -1,30 +1,17 @@
 import 'dart:convert';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hackathon_frontend/utils/storage_keys.dart';
+import 'package:hackathon_frontend/services/base_api_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
-class ProductsService {
+class ProductsService extends BaseApiService {
   ProductsService();
-
-  String get _baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://hackathon-back-theta.vercel.app';
 
   Future<List<ProductSummary>> fetchProducts({
     required int placeId,
     double? minPrice,
     double? maxPrice,
   }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw ProductsException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw ProductsException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final queryParameters = <String, String>{'placeId': placeId.toString()};
 
@@ -42,16 +29,15 @@ class ProductsService {
     http.Response response;
     try {
       response = await http
-          .get(
-            uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
+          .get(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
     } on Exception {
       throw ProductsException('No fue posible conectar con el servidor');
+    }
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw ProductsException('Sesión expirada. Por favor inicia sesión nuevamente.');
     }
 
     if (response.statusCode == 200) {
@@ -62,12 +48,8 @@ class ProductsService {
 
       return decoded
           .whereType<Map<String, dynamic>>()
-          .map((json) => ProductSummary.fromJson(json))
+          .map(ProductSummary.fromJson)
           .toList();
-    }
-
-    if (response.statusCode == 401) {
-      throw ProductsException('Sesión expirada, inicia sesión nuevamente');
     }
 
     throw ProductsException('Error inesperado (${response.statusCode})');
@@ -79,16 +61,7 @@ class ProductsService {
     required int placeId,
     String? image,
   }) async {
-    final baseUrl = _baseUrl.trim();
-    if (baseUrl.isEmpty) {
-      throw ProductsException('API_BASE_URL no está configurado');
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(StorageKeys.token);
-    if (token == null || token.isEmpty) {
-      throw ProductsException('Token de autenticación no disponible');
-    }
+    final headers = await authHeaders();
 
     final uri = Uri.parse('$baseUrl/api/products');
 
@@ -97,10 +70,7 @@ class ProductsService {
       response = await http
           .post(
             uri,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
+            headers: headers,
             body: jsonEncode({
               'name': name.trim(),
               'price': price,
@@ -115,6 +85,11 @@ class ProductsService {
 
     final decoded = response.body.isNotEmpty ? jsonDecode(response.body) : null;
 
+    if (response.statusCode == 401) {
+      await handleUnauthorized();
+      throw ProductsException('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
+
     if (response.statusCode == 201) {
       if (decoded is! Map<String, dynamic>) {
         throw ProductsException('Respuesta inválida del servidor');
@@ -127,10 +102,6 @@ class ProductsService {
           ? decoded['message'] as String? ?? 'Datos inválidos'
           : 'Datos inválidos';
       throw ProductsException(message);
-    }
-
-    if (response.statusCode == 401) {
-      throw ProductsException('Sesión expirada, inicia sesión nuevamente');
     }
 
     if (decoded is Map<String, dynamic>) {
